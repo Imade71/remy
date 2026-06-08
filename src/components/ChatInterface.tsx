@@ -147,6 +147,18 @@ export function ChatInterface({ intakeData }: ChatInterfaceProps) {
     }
   }
 
+  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const imageItem = Array.from(e.clipboardData.items).find(
+      (item) => item.kind === "file" && item.type.startsWith("image/")
+    );
+    if (!imageItem) return;
+    const file = imageItem.getAsFile();
+    if (file) {
+      e.preventDefault();
+      handleFileSelect(file);
+    }
+  }
+
   function clearChat() {
     setMessages([]);
     setInput("");
@@ -254,6 +266,7 @@ export function ChatInterface({ intakeData }: ChatInterfaceProps) {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onPaste={handlePaste}
                 placeholder="Describe what you want to do next, or ask me for guidance..."
                 className="flex-1 resize-none min-h-[36px] max-h-[180px] border-0 bg-transparent text-sm shadow-none focus-visible:ring-0 focus-visible:border-0 px-0 py-0.5 placeholder:text-muted-foreground/35 leading-relaxed"
                 rows={1}
