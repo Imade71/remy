@@ -21,18 +21,24 @@ interface Message {
 
 interface ChatInterfaceProps {
   intakeData?: IntakeData;
+  initialMessages?: Message[];
 }
 
-export function ChatInterface({ intakeData }: ChatInterfaceProps) {
-  const welcomeMessage: Message | null = intakeData
-    ? {
-        role: "assistant",
-        content: `So you're working on **${intakeData.goal}** in **${intakeData.program}** — great choice. No rush, no pressure. Where would you like to begin?`,
-      }
-    : null;
+export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProps) {
+  const welcomeMessage: Message | null =
+    intakeData && (!initialMessages || initialMessages.length === 0)
+      ? {
+          role: "assistant",
+          content: `So you're working on **${intakeData.goal}** in **${intakeData.program}** — great choice. No rush, no pressure. Where would you like to begin?`,
+        }
+      : null;
 
   const [messages, setMessages] = useState<Message[]>(
-    welcomeMessage ? [welcomeMessage] : []
+    initialMessages && initialMessages.length > 0
+      ? initialMessages
+      : welcomeMessage
+      ? [welcomeMessage]
+      : []
   );
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -112,10 +118,12 @@ export function ChatInterface({ intakeData }: ChatInterfaceProps) {
 
       if (!reader) throw new Error("No response body");
 
+      let finalAssistantContent = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         const chunk = decoder.decode(value, { stream: true });
+        finalAssistantContent += chunk;
         setMessages((prev) => {
           const updated = [...prev];
           updated[updated.length - 1] = {
@@ -125,6 +133,17 @@ export function ChatInterface({ intakeData }: ChatInterfaceProps) {
           return updated;
         });
       }
+
+      // Persist new exchange to DB (fire-and-forget)
+      const toSave: Message[] = [
+        userMessage,
+        { role: "assistant", content: finalAssistantContent },
+      ];
+      fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: toSave }),
+      }).catch(() => {});
     } catch {
       setMessages((prev) => {
         const updated = [...prev];
@@ -164,6 +183,7 @@ export function ChatInterface({ intakeData }: ChatInterfaceProps) {
     setInput("");
     setPendingImage(null);
     textareaRef.current?.focus();
+    fetch("/api/messages", { method: "DELETE" }).catch(() => {});
   }
 
   return (
