@@ -1,6 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { prisma } from "@/lib/prisma";
+import { tryEmbed, dotProduct } from "@/lib/embeddings";
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
+const SIMILARITY_THRESHOLD = 0.88;
 
 const SKILL_LABELS: Record<string, string> = {
   "Completely new to this": "a complete beginner — treat every concept as new, never assume prior knowledge",
@@ -96,10 +100,12 @@ function transformMessages(messages: IncomingMessage[]) {
   });
 }
 
-export async function POST(request: Request) {
-  const { messages, intakeData } = await request.json();
-
-  const stream = await client.messages.stream({
+function makeClaudeStream(
+  messages: IncomingMessage[],
+  intakeData: { program: string; goal: string; familiarity: string } | undefined,
+  onComplete?: (answer: string) => void
+) {
+  const claudeStreamPromise = client.messages.stream({
     model: "claude-sonnet-4-6",
     max_tokens: 8096,
     system: buildSystemPrompt(intakeData),
@@ -109,19 +115,75 @@ export async function POST(request: Request) {
   const readable = new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
+      let accumulated = "";
+      const stream = await claudeStreamPromise;
       for await (const chunk of stream) {
-        if (
-          chunk.type === "content_block_delta" &&
-          chunk.delta.type === "text_delta"
-        ) {
+        if (chunk.type === "content_block_delta" && chunk.delta.type === "text_delta") {
+          accumulated += chunk.delta.text;
           controller.enqueue(encoder.encode(chunk.delta.text));
         }
       }
       controller.close();
+      onComplete?.(accumulated);
     },
   });
 
-  return new Response(readable, {
-    headers: { "Content-Type": "text/plain; charset=utf-8" },
-  });
+  return new Response(readable, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+}
+
+export async function POST(request: Request) {
+  const { messages, intakeData } = await request.json();
+
+  const lastMsg: IncomingMessage = messages[messages.length - 1];
+  const program: string = intakeData?.program ?? "general";
+
+  // Skip cache for image messages or empty content
+  if (!lastMsg.image && lastMsg.content?.trim()) {
+    const questionVec = await tryEmbed(lastMsg.content);
+
+    if (questionVec) {
+      // Look for a semantically similar cached answer
+      const entries = await prisma.cachedAnswer.findMany({
+        where: { program },
+        select: { id: true, answer: true, embedding: true },
+      });
+
+      let bestId = "", bestAnswer = "", bestScore = 0;
+      for (const entry of entries) {
+        const score = dotProduct(questionVec, JSON.parse(entry.embedding) as number[]);
+        if (score > bestScore) { bestScore = score; bestAnswer = entry.answer; bestId = entry.id; }
+      }
+
+      if (bestScore >= SIMILARITY_THRESHOLD) {
+        // Cache hit — bump stats and return instantly
+        prisma.cachedAnswer.update({
+          where: { id: bestId },
+          data: { hitCount: { increment: 1 }, lastHitAt: new Date() },
+        }).catch(() => {});
+
+        const readable = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode(bestAnswer));
+            controller.close();
+          },
+        });
+        return new Response(readable, { headers: { "Content-Type": "text/plain; charset=utf-8" } });
+      }
+
+      // Cache miss — call Claude and save result when done
+      return makeClaudeStream(messages, intakeData, (answer) => {
+        prisma.cachedAnswer.create({
+          data: {
+            program,
+            question: lastMsg.content,
+            answer,
+            embedding: JSON.stringify(questionVec),
+          },
+        }).catch(() => {});
+      });
+    }
+  }
+
+  // Fallback: image message or embedder not ready yet
+  return makeClaudeStream(messages, intakeData);
 }

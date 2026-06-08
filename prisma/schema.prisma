@@ -66,6 +66,19 @@ model IntakeData {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model CachedAnswer {
+  id        String    @id @default(cuid())
+  program   String
+  question  String
+  answer    String
+  embedding String
+  hitCount  Int       @default(0)
+  lastHitAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([program])
+}
+
 model UserMessage {
   id             String   @id @default(cuid())
   userId         String
