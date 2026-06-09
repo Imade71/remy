@@ -8,18 +8,23 @@ datasource db {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  passwordHash  String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  accounts      Account[]
-  sessions      Session[]
-  intakeData    IntakeData?
-  messages      UserMessage[]
+  id                     String       @id @default(cuid())
+  name                   String?
+  email                  String       @unique
+  emailVerified          DateTime?
+  image                  String?
+  passwordHash           String?
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  stripeCustomerId       String?
+  stripeSubscriptionId   String?
+  stripeCurrentPeriodEnd DateTime?
+  subscriptionStatus     String?
+  accounts               Account[]
+  sessions               Session[]
+  intakeData             IntakeData?
+  messages               UserMessage[]
+  dailyUsages            DailyUsage[]
 }
 
 model Account {
@@ -90,4 +95,15 @@ model UserMessage {
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+model DailyUsage {
+  id              String   @id @default(cuid())
+  userId          String
+  date            String
+  messageCount    Int      @default(0)
+  screenshotCount Int      @default(0)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
 }

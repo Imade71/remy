@@ -73,6 +73,11 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
     transition(() => setStep(3));
   }
 
+  function handleBack() {
+    if (step === 2) transition(() => setStep(1));
+    else if (step === 3) transition(() => setStep(2));
+  }
+
   function handleFamiliaritySelect(f: string) {
     setFamiliarity(f);
     transition(() => setStep("summary"));
@@ -212,6 +217,13 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                   Continue
                 </button>
 
+                <button
+                  onClick={handleBack}
+                  className="w-full text-xs text-muted-foreground/45 hover:text-muted-foreground/70 transition-colors py-1"
+                >
+                  ← Previous
+                </button>
+
                 <p className="text-xs text-muted-foreground/35 text-center">{REASSURANCE}</p>
               </div>
             </div>
@@ -243,6 +255,13 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                   </button>
                 ))}
               </div>
+              <button
+                onClick={handleBack}
+                className="w-full text-xs text-muted-foreground/45 hover:text-muted-foreground/70 transition-colors py-1"
+              >
+                ← Previous
+              </button>
+
               <p className="text-xs text-muted-foreground/35 text-center">{REASSURANCE}</p>
             </div>
           )}

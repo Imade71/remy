@@ -1,6 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { ChatMessage } from "./ChatMessage";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,12 +20,27 @@ interface Message {
   image?: MessageImage;
 }
 
+interface UsageState {
+  isPro: boolean;
+  messagesUsed: number;
+  messagesLimit: number;
+  screenshotsUsed: number;
+  screenshotsLimit: number;
+}
+
 interface ChatInterfaceProps {
   intakeData?: IntakeData;
   initialMessages?: Message[];
+  initialUsage?: UsageState;
 }
 
-export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProps) {
+const FREE_MSG_LIMIT = 30;
+const FREE_SCREENSHOT_LIMIT = 3;
+const WARN_THRESHOLD = 5;
+
+export function ChatInterface({ intakeData, initialMessages, initialUsage }: ChatInterfaceProps) {
+  const router = useRouter();
+
   const welcomeMessage: Message | null =
     intakeData && (!initialMessages || initialMessages.length === 0)
       ? {
@@ -44,6 +60,16 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
   const [isLoading, setIsLoading] = useState(false);
   const [pendingImage, setPendingImage] = useState<MessageImage | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [usage, setUsage] = useState<UsageState>(
+    initialUsage ?? {
+      isPro: false,
+      messagesUsed: 0,
+      messagesLimit: FREE_MSG_LIMIT,
+      screenshotsUsed: 0,
+      screenshotsLimit: FREE_SCREENSHOT_LIMIT,
+    }
+  );
+  const [limitError, setLimitError] = useState<"MESSAGE_LIMIT" | "SCREENSHOT_LIMIT" | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,9 +79,21 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
+  const messagesRemaining = usage.isPro ? Infinity : usage.messagesLimit - usage.messagesUsed;
+  const screenshotsRemaining = usage.isPro ? Infinity : usage.screenshotsLimit - usage.screenshotsUsed;
+  const atMessageLimit = !usage.isPro && messagesRemaining <= 0;
+  const atScreenshotLimit = !usage.isPro && screenshotsRemaining <= 0;
+  const nearMessageLimit = !usage.isPro && messagesRemaining > 0 && messagesRemaining <= WARN_THRESHOLD;
+
   function handleFileSelect(file: File) {
     const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
     if (!validTypes.includes(file.type)) return;
+
+    if (!usage.isPro && screenshotsRemaining <= 0) {
+      setLimitError("SCREENSHOT_LIMIT");
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
@@ -88,6 +126,10 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
   async function sendMessage() {
     const trimmed = input.trim();
     if ((!trimmed && !pendingImage) || isLoading) return;
+    if (atMessageLimit) { setLimitError("MESSAGE_LIMIT"); return; }
+    if (pendingImage && atScreenshotLimit) { setLimitError("SCREENSHOT_LIMIT"); return; }
+
+    setLimitError(null);
 
     const userMessage: Message = {
       role: "user",
@@ -111,11 +153,35 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
         body: JSON.stringify({ messages: nextMessages, intakeData }),
       });
 
+      if (response.status === 429) {
+        const data = await response.json();
+        setLimitError(data.type as "MESSAGE_LIMIT" | "SCREENSHOT_LIMIT");
+        setMessages((prev) => prev.slice(0, -1));
+        return;
+      }
+
       if (!response.ok) throw new Error("Failed to get response");
+
+      // Read usage headers
+      const isPro = response.headers.get("X-Is-Pro") === "true";
+      if (!isPro) {
+        const mu = response.headers.get("X-Messages-Used");
+        const ml = response.headers.get("X-Messages-Limit");
+        const su = response.headers.get("X-Screenshots-Used");
+        const sl = response.headers.get("X-Screenshots-Limit");
+        if (mu && ml && su && sl) {
+          setUsage({
+            isPro: false,
+            messagesUsed: parseInt(mu),
+            messagesLimit: parseInt(ml),
+            screenshotsUsed: parseInt(su),
+            screenshotsLimit: parseInt(sl),
+          });
+        }
+      }
 
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
-
       if (!reader) throw new Error("No response body");
 
       let finalAssistantContent = "";
@@ -134,7 +200,6 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
         });
       }
 
-      // Persist new exchange to DB (fire-and-forget)
       const toSave: Message[] = [
         userMessage,
         { role: "assistant", content: finalAssistantContent },
@@ -182,12 +247,50 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
     setMessages([]);
     setInput("");
     setPendingImage(null);
+    setLimitError(null);
     textareaRef.current?.focus();
     fetch("/api/messages", { method: "DELETE" }).catch(() => {});
   }
 
   return (
     <div className="flex flex-col h-full">
+      {/* Limit reached modal */}
+      {limitError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-card p-8 flex flex-col gap-5 shadow-2xl text-center animate-in fade-in-0 zoom-in-95 duration-200">
+            <div className="flex h-14 w-14 mx-auto items-center justify-center rounded-full bg-primary/10 border border-primary/20">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg mb-1.5">
+                {limitError === "MESSAGE_LIMIT" ? "Daily message limit reached" : "Daily screenshot limit reached"}
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                {limitError === "MESSAGE_LIMIT"
+                  ? "You've used all 30 free messages today. Upgrade to REMY Pro for unlimited messages."
+                  : "You've used all 3 free screenshot uploads today. Upgrade to REMY Pro for unlimited uploads."}
+              </p>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <button
+                onClick={() => router.push("/pricing")}
+                className="w-full rounded-xl bg-primary py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+              >
+                Upgrade to REMY Pro — $19/mo
+              </button>
+              <button
+                onClick={() => setLimitError(null)}
+                className="text-xs text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Messages area */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto px-4 scroll-smooth">
         {messages.length === 0 ? (
@@ -221,26 +324,44 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
         )}
       </div>
 
+      {/* Warning banner */}
+      {nearMessageLimit && (
+        <div className="border-t border-amber-500/20 bg-amber-500/5 px-4 py-2.5">
+          <div className="max-w-2xl mx-auto flex items-center justify-between gap-3">
+            <p className="text-xs text-amber-500/80">
+              {messagesRemaining === 1
+                ? "1 message left today on the free plan."
+                : `${messagesRemaining} messages left today on the free plan.`}
+            </p>
+            <button
+              onClick={() => router.push("/pricing")}
+              className="text-xs text-amber-500 hover:text-amber-400 font-medium transition-colors shrink-0"
+            >
+              Upgrade to Pro
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Input area */}
       <div className="border-t border-border/50 bg-background/90 backdrop-blur-md px-4 py-4">
         <div className="max-w-2xl mx-auto flex flex-col gap-2">
           <div
             className={cn(
               "relative flex flex-col rounded-2xl border border-border/40 bg-card/60 shadow-lg shadow-black/20 backdrop-blur-sm transition-all duration-200 focus-within:border-primary/60 focus-within:shadow-primary/10 focus-within:shadow-xl",
-              isDragging && "border-primary/70 bg-primary/5 shadow-primary/20 shadow-xl"
+              isDragging && "border-primary/70 bg-primary/5 shadow-primary/20 shadow-xl",
+              atMessageLimit && "opacity-60"
             )}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
-            {/* Drag overlay */}
             {isDragging && (
               <div className="absolute inset-0 rounded-2xl flex items-center justify-center z-10 pointer-events-none">
                 <p className="text-primary text-sm font-medium">Drop image to attach</p>
               </div>
             )}
 
-            {/* Image preview */}
             {pendingImage && (
               <div className="px-3 pt-3">
                 <div className="relative inline-block">
@@ -261,19 +382,20 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
               </div>
             )}
 
-            {/* Input row */}
             <div className="flex items-end gap-2 px-3 py-2.5">
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isLoading}
+                onClick={() => atScreenshotLimit ? setLimitError("SCREENSHOT_LIMIT") : fileInputRef.current?.click()}
+                disabled={isLoading || atMessageLimit}
                 className={cn(
                   "group shrink-0 mb-0.5 h-8 w-8 flex items-center justify-center rounded-full border transition-all duration-150 disabled:opacity-30",
                   pendingImage
                     ? "text-primary bg-primary/15 border-primary/50 shadow-[0_0_10px_2px] shadow-primary/40"
+                    : atScreenshotLimit
+                    ? "text-amber-500/60 border-amber-500/20"
                     : "text-primary/60 hover:text-primary hover:bg-primary/12 border-transparent hover:border-primary/25"
                 )}
-                title="Attach image or screenshot"
+                title={atScreenshotLimit ? "Screenshot limit reached — upgrade to Pro" : "Attach image or screenshot"}
               >
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-150 group-hover:scale-110">
                   <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
@@ -287,17 +409,17 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
-                placeholder="Describe what you want to do next, or ask me for guidance..."
+                placeholder={atMessageLimit ? "Daily limit reached — upgrade to keep going" : "Describe what you want to do next, or ask me for guidance..."}
                 className="flex-1 resize-none min-h-[36px] max-h-[180px] border-0 bg-transparent text-sm shadow-none focus-visible:ring-0 focus-visible:border-0 px-0 py-0.5 placeholder:text-muted-foreground/35 leading-relaxed"
                 rows={1}
-                disabled={isLoading}
+                disabled={isLoading || atMessageLimit}
               />
 
               <Button
-                onClick={sendMessage}
-                disabled={(!input.trim() && !pendingImage) || isLoading}
+                onClick={atMessageLimit ? () => router.push("/pricing") : sendMessage}
+                disabled={atMessageLimit ? false : ((!input.trim() && !pendingImage) || isLoading)}
                 size="icon"
-                className="shrink-0 h-9 w-9 rounded-full mb-0.5 transition-all duration-200 disabled:opacity-25"
+                className={cn("shrink-0 h-9 w-9 rounded-full mb-0.5 transition-all duration-200 disabled:opacity-25", atMessageLimit && "bg-amber-500 hover:bg-amber-400")}
               >
                 {isLoading ? (
                   <span className="flex gap-[3px] items-center">
@@ -305,6 +427,10 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
                     <span className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: "120ms" }} />
                     <span className="h-1 w-1 rounded-full bg-current animate-bounce" style={{ animationDelay: "240ms" }} />
                   </span>
+                ) : atMessageLimit ? (
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                  </svg>
                 ) : (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
@@ -326,14 +452,22 @@ export function ChatInterface({ intakeData, initialMessages }: ChatInterfaceProp
             />
           </div>
 
-          {messages.length > 0 && (
-            <button
-              onClick={clearChat}
-              className="text-xs text-muted-foreground/35 hover:text-muted-foreground/70 transition-colors duration-200 self-center"
-            >
-              Clear conversation
-            </button>
-          )}
+          <div className="flex items-center justify-between">
+            {messages.length > 0 ? (
+              <button
+                onClick={clearChat}
+                className="text-xs text-muted-foreground/35 hover:text-muted-foreground/70 transition-colors duration-200"
+              >
+                Clear conversation
+              </button>
+            ) : <span />}
+
+            {!usage.isPro && (
+              <p className="text-xs text-muted-foreground/30">
+                {messagesRemaining === Infinity ? "" : `${messagesRemaining} of ${usage.messagesLimit} messages left today`}
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
