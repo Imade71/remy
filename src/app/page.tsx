@@ -135,19 +135,10 @@ export default function LandingPage() {
           <h2 className="section-title rl-reveal">One subscription.<br />Every tool you use.</h2>
           <div className="programs-grid rl-reveal">
             {[
-              { name: "Bubble",         label: "B",  bg: "#0066FF" },
-              { name: "Excel",          label: "X",  bg: "#217346" },
-              { name: "Word",           label: "W",  bg: "#2B579A" },
-              { name: "PowerPoint",     label: "P",  bg: "#D24726" },
-              { name: "CapCut",         label: "CC", bg: "#1A1A1A" },
-              { name: "Premiere Pro",   label: "Pr", bg: "#9999FF" },
-              { name: "Webflow",        label: "W",  bg: "#4353FF" },
-              { name: "DaVinci Resolve",label: "DR", bg: "#F5A623" },
-            ].map(({ name, label, bg }) => (
+              "Bubble", "Excel", "Word", "PowerPoint",
+              "CapCut", "Premiere Pro", "Webflow", "DaVinci Resolve",
+            ].map((name) => (
               <div key={name} className="program-item">
-                <div className="program-icon-badge" style={{ background: bg }}>
-                  {label}
-                </div>
                 <div className="program-name">{name}</div>
               </div>
             ))}
@@ -541,32 +532,25 @@ const LANDING_CSS = `
   background: var(--navy-card);
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 28px 20px;
-  display: flex; flex-direction: column;
-  align-items: center; gap: 12px;
+  padding: 20px 16px;
+  display: flex;
+  align-items: center; justify-content: center;
   transition: all 0.2s;
   cursor: default;
+  min-height: 64px;
 }
 .remy-landing .program-item:hover {
   border-color: var(--border-blue);
   background: var(--navy-3);
   transform: translateY(-2px);
 }
-.remy-landing .program-icon-badge {
-  width: 44px; height: 44px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 14px; font-weight: 700; color: #fff;
-  flex-shrink: 0;
-  letter-spacing: 0;
-}
 .remy-landing .program-name {
-  font-size: 12px; font-weight: 500;
-  color: var(--text-dim); text-align: center;
-  letter-spacing: 0.3px;
-  word-break: break-word;
+  font-size: 13px; font-weight: 500;
+  color: var(--text-mid); text-align: center;
+  letter-spacing: 0.2px;
   line-height: 1.4;
 }
-.remy-landing .program-item:hover .program-name { color: var(--text-mid); }
+.remy-landing .program-item:hover .program-name { color: var(--text); }
 .remy-landing .programs-more {
   text-align: center; margin-top: 20px;
   font-size: 13px; color: var(--text-dim);
