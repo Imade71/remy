@@ -83,11 +83,11 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
     transition(() => setStep("summary"));
   }
 
+  function handleConfirm() {
+    transition(() => setStep("loading"));
+  }
+
   useEffect(() => {
-    if (step === "summary") {
-      const t = setTimeout(() => transition(() => setStep("loading")), 2300);
-      return () => clearTimeout(t);
-    }
     if (step === "loading") {
       const t = setTimeout(
         () => onComplete({ program, goal: goal.trim(), familiarity }),
@@ -292,6 +292,23 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                     <p className="text-sm font-medium">{item.value}</p>
                   </div>
                 ))}
+              </div>
+              <div
+                className="space-y-3 animate-in fade-in-0 duration-500 fill-mode-both"
+                style={{ animationDelay: "560ms" }}
+              >
+                <button
+                  onClick={handleConfirm}
+                  className="w-full rounded-2xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/85 hover:shadow-xl hover:shadow-primary/35 hover:scale-[1.01] transition-all duration-200"
+                >
+                  Let&apos;s get started
+                </button>
+                <button
+                  onClick={() => transition(() => setStep(3))}
+                  className="w-full text-xs text-muted-foreground/45 hover:text-muted-foreground/70 transition-colors py-1"
+                >
+                  ← Go back
+                </button>
               </div>
             </div>
           )}
