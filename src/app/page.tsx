@@ -2,13 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 
-function imgFallback(e: React.SyntheticEvent<HTMLImageElement>) {
-  const img = e.currentTarget;
-  img.style.display = "none";
-  const fallback = img.nextElementSibling as HTMLElement | null;
-  if (fallback) fallback.style.display = "flex";
-}
-
 export default function LandingPage() {
   const [waitlistCount, setWaitlistCount] = useState(247);
   const [waitlistEmail, setWaitlistEmail] = useState("");
@@ -142,18 +135,19 @@ export default function LandingPage() {
           <h2 className="section-title rl-reveal">One subscription.<br />Every tool you use.</h2>
           <div className="programs-grid rl-reveal">
             {[
-              { name: "Bubble", src: "https://cdn.prod.website-files.com/5d3e265ac89f6a3e64292efc/5d3e265ac89f6a3e64292f0b_favicon.png", fallback: "B", bg: "#0066FF" },
-              { name: "Excel", src: "https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg", fallback: "X", bg: "#217346" },
-              { name: "Word", src: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg", fallback: "W", bg: "#2B579A" },
-              { name: "PowerPoint", src: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Microsoft_Office_PowerPoint_%282019%E2%80%93present%29.svg", fallback: "P", bg: "#D24726" },
-              { name: "CapCut", src: "https://lf16-effectkit.capcut.com/effectkit/resource/capcut_logo.png", fallback: "CC", bg: "#000" },
-              { name: "Premiere Pro", src: "https://upload.wikimedia.org/wikipedia/commons/4/40/Adobe_Premiere_Pro_CC_icon.svg", fallback: "Pr", bg: "#9999FF" },
-              { name: "Webflow", src: "https://upload.wikimedia.org/wikipedia/commons/9/92/Webflow_logo.svg", fallback: "W", bg: "#4353FF" },
-              { name: "DaVinci Resolve", src: "https://www.blackmagicdesign.com/images/landing/davinci-resolve/icon.png", fallback: "DR", bg: "#F5A623" },
-            ].map(({ name, src, fallback, bg }) => (
+              { name: "Bubble",         label: "B",  bg: "#0066FF" },
+              { name: "Excel",          label: "X",  bg: "#217346" },
+              { name: "Word",           label: "W",  bg: "#2B579A" },
+              { name: "PowerPoint",     label: "P",  bg: "#D24726" },
+              { name: "CapCut",         label: "CC", bg: "#1A1A1A" },
+              { name: "Premiere Pro",   label: "Pr", bg: "#9999FF" },
+              { name: "Webflow",        label: "W",  bg: "#4353FF" },
+              { name: "DaVinci Resolve",label: "DR", bg: "#F5A623" },
+            ].map(({ name, label, bg }) => (
               <div key={name} className="program-item">
-                <img className="program-icon" src={src} alt={name} loading="lazy" onError={imgFallback} />
-                <div className="program-icon-fallback" style={{ display: "none", width: 40, height: 40, background: bg, borderRadius: 8, alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff" }}>{fallback}</div>
+                <div className="program-icon-badge" style={{ background: bg }}>
+                  {label}
+                </div>
                 <div className="program-name">{name}</div>
               </div>
             ))}
@@ -539,7 +533,7 @@ const LANDING_CSS = `
 .remy-landing .programs-inner { max-width: 1000px; margin: 0 auto; }
 .remy-landing .programs-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
   margin-top: 56px;
 }
@@ -558,11 +552,19 @@ const LANDING_CSS = `
   background: var(--navy-3);
   transform: translateY(-2px);
 }
-.remy-landing .program-icon { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
+.remy-landing .program-icon-badge {
+  width: 44px; height: 44px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
 .remy-landing .program-name {
   font-size: 12px; font-weight: 500;
   color: var(--text-dim); text-align: center;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  word-break: break-word;
+  line-height: 1.4;
 }
 .remy-landing .program-item:hover .program-name { color: var(--text-mid); }
 .remy-landing .programs-more {
