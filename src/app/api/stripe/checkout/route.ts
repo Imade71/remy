@@ -46,7 +46,7 @@ export async function POST() {
         quantity: 1,
       },
     ],
-    success_url: `${process.env.NEXTAUTH_URL}/?upgraded=true`,
+    success_url: `${process.env.NEXTAUTH_URL}/chat?upgraded=true`,
     cancel_url: `${process.env.NEXTAUTH_URL}/pricing`,
     metadata: { userId },
   });

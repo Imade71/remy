@@ -1,322 +1,827 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSession, signOut } from "next-auth/react";
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { ChatInterface } from "@/components/ChatInterface";
-import { IntakeScreen, type IntakeData } from "@/components/IntakeScreen";
-import { AuthScreen } from "@/components/AuthScreen";
-import { Sidebar } from "@/components/Sidebar";
-import type { MessageImage } from "@/components/ChatInterface";
+import { useEffect, useRef, useState } from "react";
 
-interface StoredMessage {
-  id: string;
-  role: string;
-  content: string;
-  imageData: string | null;
-  imageMediaType: string | null;
+function imgFallback(e: React.SyntheticEvent<HTMLImageElement>) {
+  const img = e.currentTarget;
+  img.style.display = "none";
+  const fallback = img.nextElementSibling as HTMLElement | null;
+  if (fallback) fallback.style.display = "flex";
 }
 
-interface UsageState {
-  isPro: boolean;
-  messagesUsed: number;
-  messagesLimit: number;
-  screenshotsUsed: number;
-  screenshotsLimit: number;
-}
+export default function LandingPage() {
+  const [waitlistCount, setWaitlistCount] = useState(247);
+  const [waitlistEmail, setWaitlistEmail] = useState("");
+  const [showWaitlistSuccess, setShowWaitlistSuccess] = useState(false);
+  const [emailError, setEmailError] = useState(false);
+  const [copyText, setCopyText] = useState("Copy link");
+  const containerRef = useRef<HTMLDivElement>(null);
 
-function Spinner() {
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const reveals = container.querySelectorAll(".rl-reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.classList.add("rl-visible");
+        });
+      },
+      { threshold: 0.1 }
+    );
+    reveals.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+
+  function scrollToId(id: string) {
+    containerRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: "smooth" });
+  }
+
+  function handleWaitlist() {
+    if (!waitlistEmail || !waitlistEmail.includes("@")) {
+      setEmailError(true);
+      return;
+    }
+    setEmailError(false);
+    setShowWaitlistSuccess(true);
+    setWaitlistCount((c) => c + 1);
+  }
+
+  function shareTwitter() {
+    window.open(
+      "https://twitter.com/intent/tweet?text=Just+joined+the+waitlist+for+Remy+%E2%80%94+an+AI+that+guides+you+through+any+software+step+by+step.+%F0%9F%9A%80&url=https://getremy.ai",
+      "_blank"
+    );
+  }
+
+  function copyLink() {
+    navigator.clipboard.writeText("https://getremy.ai");
+    setCopyText("Copied!");
+    setTimeout(() => setCopyText("Copy link"), 2000);
+  }
+
   return (
-    <div className="flex h-full items-center justify-center">
-      <span className="flex gap-[5px] items-center">
-        <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "0ms" }} />
-        <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "120ms" }} />
-        <span className="h-2 w-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: "240ms" }} />
-      </span>
+    <div ref={containerRef} className="remy-landing">
+      <style dangerouslySetInnerHTML={{ __html: LANDING_CSS }} />
+
+      {/* NAV */}
+      <nav>
+        <a href="#" className="nav-logo">
+          <div className="nav-logo-mark">R</div>
+          <span className="nav-logo-text">REMY</span>
+        </a>
+        <ul className="nav-links">
+          <li><a href="#how" onClick={(e) => { e.preventDefault(); scrollToId("how"); }}>How it works</a></li>
+          <li><a href="#programs" onClick={(e) => { e.preventDefault(); scrollToId("programs"); }}>Programs</a></li>
+          <li><a href="#pricing" onClick={(e) => { e.preventDefault(); scrollToId("pricing"); }}>Pricing</a></li>
+        </ul>
+        <button className="nav-cta" onClick={() => scrollToId("waitlist")}>Get early access</button>
+      </nav>
+
+      {/* HERO */}
+      <section className="hero">
+        <div className="hero-bg"></div>
+        <div className="hero-grid"></div>
+        <div className="hero-badge">
+          <div className="hero-badge-dot"></div>
+          Introducing REMY
+        </div>
+        <h1 className="hero-title">Navigate <span>any</span><br />software.</h1>
+        <p className="hero-subtitle">Step by step guidance for any program — right when you need it.</p>
+        <div className="hero-actions">
+          <a href="/chat" className="btn-primary">Start for free</a>
+          <button className="btn-secondary" onClick={() => scrollToId("how")}>See how it works</button>
+        </div>
+        <div className="hero-scroll">
+          <div className="scroll-line"></div>
+          <span style={{ fontSize: "11px", letterSpacing: "1px" }}>SCROLL</span>
+        </div>
+      </section>
+
+      {/* DEMO */}
+      <section className="demo rl-reveal">
+        <p className="section-label">See REMY in action</p>
+        <h2 className="section-title">Your guide.<br />Any program.</h2>
+        <div className="demo-window">
+          <div className="demo-bar">
+            <div className="demo-dots">
+              <div className="demo-dot" style={{ background: "#ff5f57" }}></div>
+              <div className="demo-dot" style={{ background: "#febc2e" }}></div>
+              <div className="demo-dot" style={{ background: "#28c840" }}></div>
+            </div>
+            <span style={{ fontSize: "13px", fontWeight: 500, color: "#475569" }}>REMY</span>
+            <div style={{ width: "48px" }}></div>
+          </div>
+          <div className="demo-messages">
+            <div className="demo-msg" style={{ animationDelay: "0.3s" }}>
+              <div className="demo-avatar">R</div>
+              <div className="demo-bubble">Hey! Which program do you need help with today?</div>
+            </div>
+            <div className="demo-msg user" style={{ animationDelay: "0.8s" }}>
+              <div className="demo-bubble">DaVinci Resolve — I want to add subtitles to my video</div>
+            </div>
+            <div className="demo-msg" style={{ animationDelay: "1.4s" }}>
+              <div className="demo-avatar">R</div>
+              <div className="demo-bubble">Go to the <strong style={{ color: "var(--text)" }}>Edit</strong> page, then click <strong style={{ color: "var(--text)" }}>Fusion</strong> in the top menu and select <strong style={{ color: "var(--text)" }}>Subtitles</strong>. Drag a subtitle track to your timeline. Want me to walk you through styling them next?</div>
+            </div>
+            <div className="demo-msg user" style={{ animationDelay: "2s" }}>
+              <div className="demo-bubble">Yes please</div>
+            </div>
+            <div className="demo-msg" style={{ animationDelay: "2.6s" }}>
+              <div className="demo-avatar">R</div>
+              <div className="demo-bubble">Click a subtitle clip in your timeline. In the <strong style={{ color: "var(--text)" }}>Inspector panel</strong> on the right, you&apos;ll find Font, Size, and Color. Try <strong style={{ color: "var(--text)" }}>Helvetica Neue</strong> — it works cleanly for most videos...</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* PROGRAMS */}
+      <section className="programs" id="programs">
+        <div className="programs-inner">
+          <p className="section-label rl-reveal">Supported programs</p>
+          <h2 className="section-title rl-reveal">One subscription.<br />Every tool you use.</h2>
+          <div className="programs-grid rl-reveal">
+            {[
+              { name: "Bubble", src: "https://cdn.prod.website-files.com/5d3e265ac89f6a3e64292efc/5d3e265ac89f6a3e64292f0b_favicon.png", fallback: "B", bg: "#0066FF" },
+              { name: "Excel", src: "https://upload.wikimedia.org/wikipedia/commons/3/34/Microsoft_Office_Excel_%282019%E2%80%93present%29.svg", fallback: "X", bg: "#217346" },
+              { name: "Word", src: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Microsoft_Office_Word_%282019%E2%80%93present%29.svg", fallback: "W", bg: "#2B579A" },
+              { name: "PowerPoint", src: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Microsoft_Office_PowerPoint_%282019%E2%80%93present%29.svg", fallback: "P", bg: "#D24726" },
+              { name: "CapCut", src: "https://lf16-effectkit.capcut.com/effectkit/resource/capcut_logo.png", fallback: "CC", bg: "#000" },
+              { name: "Premiere Pro", src: "https://upload.wikimedia.org/wikipedia/commons/4/40/Adobe_Premiere_Pro_CC_icon.svg", fallback: "Pr", bg: "#9999FF" },
+              { name: "Webflow", src: "https://upload.wikimedia.org/wikipedia/commons/9/92/Webflow_logo.svg", fallback: "W", bg: "#4353FF" },
+              { name: "DaVinci Resolve", src: "https://www.blackmagicdesign.com/images/landing/davinci-resolve/icon.png", fallback: "DR", bg: "#F5A623" },
+            ].map(({ name, src, fallback, bg }) => (
+              <div key={name} className="program-item">
+                <img className="program-icon" src={src} alt={name} loading="lazy" onError={imgFallback} />
+                <div className="program-icon-fallback" style={{ display: "none", width: 40, height: 40, background: bg, borderRadius: 8, alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 700, color: "#fff" }}>{fallback}</div>
+                <div className="program-name">{name}</div>
+              </div>
+            ))}
+          </div>
+          <p className="programs-more rl-reveal">And any other program you can think of — just ask Remy.</p>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="how" id="how">
+        <p className="section-label rl-reveal">The process</p>
+        <h2 className="section-title rl-reveal">How Remy works</h2>
+        <div className="steps">
+          {[
+            { n: 1, title: "Tell Remy your goal", body: "Open Remy and describe what you're trying to accomplish. No technical language needed — just say it in plain words." },
+            { n: 2, title: "Get step by step guidance", body: "Remy breaks your goal into clear, precise steps tailored to exactly the program you're using. Follow at your own pace." },
+            { n: 3, title: "Stuck? Just say so.", body: 'Hit the "I\'m stuck" button at any point and Remy slows down, zooms in, and walks you through the exact moment you\'re struggling with.' },
+            { n: 4, title: "Accomplish more, faster", body: "No more YouTube rabbit holes. No more outdated tutorials. Just clear guidance, right when you need it." },
+          ].map(({ n, title, body }) => (
+            <div key={n} className="step rl-reveal">
+              <div className="step-num">{n}</div>
+              <div className="step-content">
+                <h3>{title}</h3>
+                <p>{body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* STUCK FEATURE */}
+      <section className="stuck">
+        <div className="stuck-bg"></div>
+        <div className="stuck-inner rl-reveal">
+          <p className="section-label">The safety net</p>
+          <h2 className="section-title">Everyone gets stuck.<br /><span style={{ color: "var(--blue)" }}>Remy gets you unstuck.</span></h2>
+          <div className="stuck-button-demo">I&apos;m stuck — help me</div>
+          <p className="stuck-desc">One button. That&apos;s all it takes. Remy immediately switches into a more detailed, hand-holding mode — slowing down, asking what you see on screen, and guiding you through the exact moment of confusion.</p>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section className="pricing" id="pricing">
+        <div className="pricing-inner">
+          <p className="section-label rl-reveal">Simple pricing</p>
+          <h2 className="section-title rl-reveal">Start free.<br />Upgrade when ready.</h2>
+          <div className="pricing-grid rl-reveal" style={{ maxWidth: 640, marginInline: "auto" }}>
+            <div className="pricing-card">
+              <p className="pricing-tier">Free</p>
+              <div className="pricing-price"><span>$</span>0</div>
+              <p className="pricing-period">forever</p>
+              <ul className="pricing-features">
+                <li>30 messages per day</li>
+                <li>3 screenshot uploads per day</li>
+                <li>Session-only memory</li>
+                <li>All programs supported</li>
+                <li>I&apos;m stuck feature</li>
+              </ul>
+              <a href="/chat" className="btn-secondary" style={{ width: "100%", display: "block", textAlign: "center", textDecoration: "none" }}>Get started</a>
+            </div>
+            <div className="pricing-card featured">
+              <div className="pricing-badge">Most popular</div>
+              <p className="pricing-tier">Pro</p>
+              <div className="pricing-price"><span>$</span>19</div>
+              <p className="pricing-period">per month</p>
+              <ul className="pricing-features">
+                <li>Unlimited messages</li>
+                <li>Unlimited screenshot uploads</li>
+                <li>Full cross-session memory</li>
+                <li>All programs supported</li>
+                <li>I&apos;m stuck feature</li>
+                <li>Priority support</li>
+              </ul>
+              <a href="/chat" className="btn-primary" style={{ width: "100%", display: "block", textAlign: "center", textDecoration: "none" }}>Start for free</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* WAITLIST */}
+      <section className="waitlist" id="waitlist">
+        <div className="waitlist-bg"></div>
+        <div className="waitlist-inner rl-reveal">
+          <div className="waitlist-count">
+            <div className="waitlist-count-dot"></div>
+            <span>{waitlistCount}</span> people on the waitlist
+          </div>
+          <h2 className="section-title">Be first.<br /><span style={{ color: "var(--blue)" }}>Get early access.</span></h2>
+          <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: 1.8, marginTop: "14px" }}>Remy is launching soon. Join the waitlist and be among the first to navigate any software with confidence.</p>
+
+          {!showWaitlistSuccess ? (
+            <div className="waitlist-form">
+              <input
+                type="email"
+                className="waitlist-input"
+                placeholder={emailError ? "Please enter a valid email" : "Your email address"}
+                value={waitlistEmail}
+                onChange={(e) => { setWaitlistEmail(e.target.value); setEmailError(false); }}
+                style={emailError ? { borderColor: "rgba(239,68,68,0.5)" } : undefined}
+              />
+              <button className="waitlist-submit" onClick={handleWaitlist}>Join waitlist</button>
+            </div>
+          ) : (
+            <div className="waitlist-success" style={{ display: "flex" }}>
+              <div className="waitlist-success-icon">✓</div>
+              <p>You&apos;re on the list. <strong>Remy will be in touch.</strong></p>
+              <p style={{ fontSize: "12px", color: "var(--text-dim)" }}>Share Remy with someone who needs it.</p>
+              <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
+                <button onClick={shareTwitter} className="btn-secondary" style={{ fontSize: "13px", padding: "10px 18px" }}>Share on X</button>
+                <button onClick={copyLink} className="btn-secondary" style={{ fontSize: "13px", padding: "10px 18px" }}>{copyText}</button>
+              </div>
+            </div>
+          )}
+
+          <p className="waitlist-note">No spam. No noise. Just Remy when it&apos;s ready.</p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer>
+        <div style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div className="footer-logo">
+            <div className="nav-logo-mark">R</div>
+            <span className="nav-logo-text">REMY</span>
+          </div>
+          <p className="footer-tagline">Navigate anything.</p>
+          <p className="footer-copy">© 2026 REMY. All rights reserved.</p>
+        </div>
+        <p style={{ fontSize: "11px", color: "var(--text-dim)", opacity: 0.5, marginTop: "12px", maxWidth: "560px", textAlign: "center", lineHeight: 1.7 }}>
+          All product names, logos, and brands are property of their respective owners. REMY is not affiliated with, endorsed by, or sponsored by any of the companies mentioned.
+        </p>
+      </footer>
     </div>
   );
 }
 
-function HomeContent() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [intakeData, setIntakeData] = useState<IntakeData | null>(null);
-  const [initialMessages, setInitialMessages] = useState<Array<{ role: "user" | "assistant"; content: string; image?: MessageImage }> | null>(null);
-  const [dataLoading, setDataLoading] = useState(false);
-  const [usage, setUsage] = useState<UsageState | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    setDataLoading(true);
-
-    Promise.all([
-      fetch("/api/intake").then((r) => r.json()),
-      fetch("/api/messages").then((r) => r.json()),
-      fetch("/api/usage").then((r) => r.json()),
-    ]).then(([intake, messages, usageData]) => {
-      if (intake) setIntakeData(intake);
-      if (Array.isArray(messages)) {
-        setInitialMessages(
-          messages.map((m: StoredMessage) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-            ...(m.imageData && m.imageMediaType
-              ? {
-                  image: {
-                    data: m.imageData,
-                    mediaType: m.imageMediaType as MessageImage["mediaType"],
-                    previewUrl: `data:${m.imageMediaType};base64,${m.imageData}`,
-                  },
-                }
-              : {}),
-          }))
-        );
-      } else {
-        setInitialMessages([]);
-      }
-      if (usageData && !usageData.error) {
-        setUsage({
-          isPro: usageData.isPro,
-          messagesUsed: usageData.messagesUsed,
-          messagesLimit: usageData.messagesLimit ?? 30,
-          screenshotsUsed: usageData.screenshotsUsed,
-          screenshotsLimit: usageData.screenshotsLimit ?? 3,
-        });
-      }
-      setDataLoading(false);
-    });
-  }, [session?.user?.id]);
-
-  async function handleIntakeComplete(data: IntakeData) {
-    await fetch("/api/intake", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    setIntakeData(data);
-    setInitialMessages([]);
-  }
-
-  async function handleNewConversation() {
-    await fetch("/api/messages", { method: "DELETE" });
-    setIntakeData(null);
-    setInitialMessages([]);
-  }
-
-  const upgraded = searchParams.get("upgraded") === "true";
-  const [showUpgradeBanner, setShowUpgradeBanner] = useState(upgraded);
-
-  useEffect(() => {
-    if (!showUpgradeBanner) return;
-    router.replace("/");
-    const t = setTimeout(() => setShowUpgradeBanner(false), 8000);
-    return () => clearTimeout(t);
-  }, [showUpgradeBanner]);
-
-  if (status === "loading" || (session && dataLoading)) {
-    return (
-      <main className="flex flex-col h-full">
-        <Header session={session} isPro={false} />
-        <div className="flex-1 overflow-hidden">
-          <Spinner />
-        </div>
-      </main>
-    );
-  }
-
-  if (!session) {
-    return (
-      <main className="flex flex-col h-full">
-        <Header session={null} isPro={false} />
-        <div className="flex-1 overflow-hidden">
-          <AuthScreen />
-        </div>
-      </main>
-    );
-  }
-
-  const firstName = session?.user?.name?.split(" ")[0] ?? session?.user?.email?.split("@")[0] ?? "there";
-
-  return (
-    <main className="flex flex-col h-full">
-      <Header
-        session={session}
-        isPro={usage?.isPro ?? false}
-        onMenuClick={() => setSidebarOpen(true)}
-      />
-      <div className="flex-1 overflow-hidden">
-        <div
-          key={intakeData ? "chat" : "intake"}
-          className="h-full animate-in fade-in-0 duration-500"
-        >
-          {intakeData && initialMessages !== null ? (
-            <ChatInterface
-              intakeData={intakeData}
-              initialMessages={initialMessages}
-              initialUsage={usage ?? undefined}
-            />
-          ) : (
-            <IntakeScreen onComplete={handleIntakeComplete} />
-          )}
-        </div>
-      </div>
-
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        session={session}
-        isPro={usage?.isPro ?? false}
-        intakeData={intakeData}
-        onNewConversation={handleNewConversation}
-      />
-
-      {showUpgradeBanner && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center animate-in fade-in-0 duration-300">
-          <div className="absolute inset-0 bg-background/70 backdrop-blur-sm" onClick={() => setShowUpgradeBanner(false)} />
-          <div className="relative z-10 w-full max-w-sm mx-6 rounded-3xl border border-primary/30 bg-card shadow-2xl shadow-primary/15 overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/8 to-transparent pointer-events-none" />
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/60 to-transparent" />
-
-            <div className="relative px-8 pt-10 pb-8 flex flex-col items-center text-center">
-              <div className="relative mb-7">
-                <div className="absolute inset-0 rounded-full bg-primary/30 blur-2xl scale-150" />
-                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-primary/40 bg-primary/15 shadow-xl shadow-primary/30">
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
-                    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z" />
-                  </svg>
-                </div>
-              </div>
-
-              <p className="text-[10px] font-semibold text-primary/60 uppercase tracking-[0.2em] mb-3">
-                REMY Pro · Active
-              </p>
-              <h2 className="text-[1.6rem] font-semibold tracking-tight leading-snug mb-3">
-                You&apos;re in, {firstName}.
-              </h2>
-              <p className="text-sm text-muted-foreground/65 leading-relaxed max-w-[260px]">
-                No limits, full memory — let&apos;s build something great.
-              </p>
-
-              <button
-                onClick={() => setShowUpgradeBanner(false)}
-                className="mt-8 w-full rounded-2xl bg-primary py-3.5 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/25 hover:bg-primary/85 hover:shadow-xl hover:shadow-primary/35 transition-all duration-200"
-              >
-                Let&apos;s go
-              </button>
-              <button
-                onClick={() => setShowUpgradeBanner(false)}
-                className="mt-3 text-xs text-muted-foreground/35 hover:text-muted-foreground/60 transition-colors"
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </main>
-  );
+const LANDING_CSS = `
+.remy-landing {
+  --navy: #0a0f1e;
+  --navy-2: #0f1528;
+  --navy-3: #141b33;
+  --navy-card: #111827;
+  --blue: #3b82f6;
+  --blue-dim: rgba(59,130,246,0.12);
+  --blue-glow: rgba(59,130,246,0.25);
+  --text: #f1f5f9;
+  --text-dim: #64748b;
+  --text-mid: #94a3b8;
+  --border: rgba(255,255,255,0.07);
+  --border-blue: rgba(59,130,246,0.25);
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--navy);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  scroll-behavior: smooth;
 }
 
-export default function Home() {
-  return (
-    <Suspense
-      fallback={
-        <main className="flex flex-col h-full">
-          <div className="flex-1 overflow-hidden">
-            <Spinner />
-          </div>
-        </main>
-      }
-    >
-      <HomeContent />
-    </Suspense>
-  );
+.remy-landing * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* NAV */
+.remy-landing nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 20px 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(10,15,30,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.remy-landing .nav-logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.remy-landing .nav-logo-mark {
+  width: 32px; height: 32px;
+  background: var(--blue);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 600; color: #fff;
+}
+.remy-landing .nav-logo-text {
+  font-size: 16px; font-weight: 600; color: var(--text);
+  letter-spacing: 0.5px;
+}
+.remy-landing .nav-links {
+  display: flex; align-items: center; gap: 36px;
+  list-style: none;
+}
+.remy-landing .nav-links a {
+  color: var(--text-mid); text-decoration: none;
+  font-size: 14px; font-weight: 400;
+  transition: color 0.2s;
+}
+.remy-landing .nav-links a:hover { color: var(--text); }
+.remy-landing .nav-cta {
+  background: var(--blue);
+  border: none; color: #fff;
+  padding: 10px 22px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.remy-landing .nav-cta:hover { background: #2563eb; transform: translateY(-1px); }
+
+/* HERO */
+.remy-landing .hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: 120px 40px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.remy-landing .hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 0%, rgba(59,130,246,0.1) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 80% 80%, rgba(59,130,246,0.05) 0%, transparent 50%);
+}
+.remy-landing .hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+}
+.remy-landing .hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--blue-dim);
+  border: 1px solid var(--border-blue);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-size: 13px; color: #93c5fd;
+  margin-bottom: 32px;
+  animation: rl-fadeUp 0.6s 0.1s both;
+}
+.remy-landing .hero-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue);
+  animation: rl-pulse 2s infinite;
+}
+.remy-landing .hero-title {
+  font-size: clamp(44px, 7vw, 80px);
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -1.5px;
+  color: var(--text);
+  margin-bottom: 12px;
+  animation: rl-fadeUp 0.6s 0.2s both;
+}
+.remy-landing .hero-title span { color: var(--blue); }
+.remy-landing .hero-subtitle {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 400;
+  color: var(--text-mid);
+  margin-bottom: 48px;
+  animation: rl-fadeUp 0.6s 0.35s both;
+  max-width: 500px;
+}
+.remy-landing .hero-actions {
+  display: flex; gap: 12px; align-items: center;
+  animation: rl-fadeUp 0.6s 0.5s both;
+}
+.remy-landing .btn-primary {
+  background: var(--blue);
+  border: none; color: #fff;
+  padding: 14px 32px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+}
+.remy-landing .btn-primary:hover { background: #2563eb; transform: translateY(-1px); box-shadow: 0 8px 24px var(--blue-glow); }
+.remy-landing .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  padding: 14px 32px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px; font-weight: 400;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+}
+.remy-landing .btn-secondary:hover { border-color: var(--border-blue); color: var(--text); }
+.remy-landing .hero-scroll {
+  position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--text-dim); font-size: 12px;
+  animation: rl-fadeUp 0.6s 0.8s both;
+}
+.remy-landing .scroll-line {
+  width: 1px; height: 36px;
+  background: linear-gradient(to bottom, var(--blue), transparent);
+  animation: rl-scrollPulse 2s infinite;
 }
 
-function Header({
-  session,
-  isPro,
-  onMenuClick,
-}: {
-  session: ReturnType<typeof useSession>["data"];
-  isPro: boolean;
-  onMenuClick?: () => void;
-}) {
-  const router = useRouter();
-
-  return (
-    <header className="flex items-center justify-between px-5 py-4 border-b border-border/50 bg-background/80 backdrop-blur-md shrink-0">
-      <div className="flex items-center gap-3">
-        {onMenuClick && (
-          <button
-            onClick={onMenuClick}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-border/40 transition-all duration-150"
-            aria-label="Open menu"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" x2="20" y1="6" y2="6" />
-              <line x1="4" x2="20" y1="12" y2="12" />
-              <line x1="4" x2="20" y1="18" y2="18" />
-            </svg>
-          </button>
-        )}
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-            R
-          </div>
-          <span className="font-semibold text-sm tracking-wide">REMY</span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-3">
-        {!isPro && session?.user && (
-          <button
-            onClick={() => router.push("/pricing")}
-            className="hidden sm:flex items-center gap-1.5 text-xs text-primary/70 hover:text-primary border border-primary/20 hover:border-primary/40 rounded-full px-3 py-1 transition-all duration-150 hover:bg-primary/5"
-          >
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-            </svg>
-            Upgrade
-          </button>
-        )}
-        {isPro && (
-          <button
-            onClick={() => router.push("/pricing")}
-            className="hidden sm:flex items-center gap-1.5 text-xs text-primary/80 border border-primary/30 rounded-full px-3 py-1 bg-primary/5"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-            Pro
-          </button>
-        )}
-        {session?.user && (
-          <>
-            <span className="text-xs text-muted-foreground/50 hidden sm:block">
-              {session.user.name ?? session.user.email}
-            </span>
-            {session.user.image ? (
-              <img
-                src={session.user.image}
-                alt="avatar"
-                className="h-7 w-7 rounded-full border border-border/40"
-              />
-            ) : (
-              <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/20 text-primary text-xs font-semibold border border-primary/20">
-                {(session.user.name ?? session.user.email ?? "?")[0].toUpperCase()}
-              </div>
-            )}
-            <button
-              onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-xs text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
-            >
-              Sign out
-            </button>
-          </>
-        )}
-      </div>
-    </header>
-  );
+/* DEMO */
+.remy-landing .demo {
+  padding: 100px 40px;
+  max-width: 860px; margin: 0 auto;
 }
+.remy-landing .section-label {
+  font-size: 12px; font-weight: 500; letter-spacing: 2px;
+  color: var(--blue); margin-bottom: 12px; text-align: center;
+  text-transform: uppercase;
+}
+.remy-landing .section-title {
+  font-size: clamp(28px, 4vw, 44px);
+  font-weight: 600; text-align: center;
+  margin-bottom: 56px; line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+.remy-landing .demo-window {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(59,130,246,0.08);
+}
+.remy-landing .demo-bar {
+  background: var(--navy-2);
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.remy-landing .demo-dots { display: flex; gap: 6px; }
+.remy-landing .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+.remy-landing .demo-messages {
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 14px;
+  min-height: 280px;
+}
+.remy-landing .demo-msg {
+  display: flex; gap: 10px; align-items: flex-end;
+  opacity: 0;
+  animation: rl-fadeUp 0.5s forwards;
+}
+.remy-landing .demo-msg.user { flex-direction: row-reverse; }
+.remy-landing .demo-avatar {
+  width: 28px; height: 28px; border-radius: 8px;
+  background: var(--blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 600; color: #fff;
+  flex-shrink: 0;
+}
+.remy-landing .demo-bubble {
+  padding: 12px 16px;
+  font-size: 14px; line-height: 1.6;
+  max-width: 72%;
+  border-radius: 14px;
+}
+.remy-landing .demo-msg:not(.user) .demo-bubble {
+  background: var(--navy-3);
+  border: 1px solid var(--border);
+  border-bottom-left-radius: 4px;
+  color: var(--text-mid);
+}
+.remy-landing .demo-msg.user .demo-bubble {
+  background: var(--blue);
+  border-bottom-right-radius: 4px;
+  color: #fff;
+}
+
+/* PROGRAMS */
+.remy-landing .programs {
+  padding: 100px 40px;
+  background: var(--navy-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.remy-landing .programs-inner { max-width: 1000px; margin: 0 auto; }
+.remy-landing .programs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-top: 56px;
+}
+.remy-landing .program-item {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px 20px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 12px;
+  transition: all 0.2s;
+  cursor: default;
+}
+.remy-landing .program-item:hover {
+  border-color: var(--border-blue);
+  background: var(--navy-3);
+  transform: translateY(-2px);
+}
+.remy-landing .program-icon { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; }
+.remy-landing .program-name {
+  font-size: 12px; font-weight: 500;
+  color: var(--text-dim); text-align: center;
+  letter-spacing: 0.5px;
+}
+.remy-landing .program-item:hover .program-name { color: var(--text-mid); }
+.remy-landing .programs-more {
+  text-align: center; margin-top: 20px;
+  font-size: 13px; color: var(--text-dim);
+}
+
+/* HOW IT WORKS */
+.remy-landing .how {
+  padding: 100px 40px;
+  max-width: 860px; margin: 0 auto;
+}
+.remy-landing .steps {
+  display: flex; flex-direction: column; gap: 0;
+  margin-top: 56px;
+  position: relative;
+}
+.remy-landing .steps::before {
+  content: '';
+  position: absolute;
+  left: 23px; top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, var(--blue), transparent);
+}
+.remy-landing .step {
+  display: flex; gap: 28px; align-items: flex-start;
+  padding: 36px 0;
+  border-bottom: 1px solid var(--border);
+}
+.remy-landing .step:last-child { border-bottom: none; }
+.remy-landing .step-num {
+  width: 46px; height: 46px; flex-shrink: 0;
+  border: 1px solid var(--border-blue);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 600; color: var(--blue);
+  background: var(--navy-card);
+  position: relative; z-index: 1;
+}
+.remy-landing .step-content h3 {
+  font-size: 18px; font-weight: 600;
+  margin-bottom: 8px; color: var(--text);
+}
+.remy-landing .step-content p {
+  font-size: 14px; line-height: 1.7;
+  color: var(--text-dim);
+}
+
+/* STUCK FEATURE */
+.remy-landing .stuck {
+  padding: 100px 40px;
+  text-align: center;
+  position: relative; overflow: hidden;
+  background: var(--navy-2);
+  border-top: 1px solid var(--border);
+}
+.remy-landing .stuck-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(59,130,246,0.07) 0%, transparent 70%);
+}
+.remy-landing .stuck-inner { max-width: 580px; margin: 0 auto; position: relative; }
+.remy-landing .stuck-button-demo {
+  display: inline-block;
+  border: 1px solid var(--border-blue);
+  color: var(--blue);
+  background: var(--blue-dim);
+  padding: 14px 36px;
+  font-size: 14px; font-weight: 500;
+  border-radius: 10px;
+  margin: 36px 0;
+  animation: rl-glowPulse 3s infinite;
+}
+.remy-landing .stuck-desc {
+  font-size: 15px; line-height: 1.8; color: var(--text-dim);
+}
+
+/* PRICING */
+.remy-landing .pricing {
+  padding: 100px 40px;
+  border-top: 1px solid var(--border);
+}
+.remy-landing .pricing-inner { max-width: 860px; margin: 0 auto; }
+.remy-landing .pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-top: 56px;
+}
+.remy-landing .pricing-card {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 28px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.remy-landing .pricing-card.featured {
+  border-color: var(--border-blue);
+  background: var(--navy-3);
+}
+.remy-landing .pricing-badge {
+  position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  background: var(--blue);
+  color: #fff; font-size: 11px; font-weight: 500;
+  padding: 4px 16px;
+  border-radius: 0 0 8px 8px;
+  letter-spacing: 0.5px;
+}
+.remy-landing .pricing-tier {
+  font-size: 12px; font-weight: 500; letter-spacing: 2px;
+  color: var(--text-dim); margin-bottom: 20px;
+  text-transform: uppercase;
+}
+.remy-landing .pricing-price {
+  font-size: 52px; font-weight: 600; color: var(--text);
+  line-height: 1; margin-bottom: 4px;
+  letter-spacing: -1px;
+}
+.remy-landing .pricing-price span { font-size: 22px; color: var(--text-dim); font-weight: 400; }
+.remy-landing .pricing-period {
+  font-size: 13px; color: var(--text-dim);
+  margin-bottom: 28px;
+}
+.remy-landing .pricing-features {
+  list-style: none;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 36px;
+}
+.remy-landing .pricing-features li {
+  font-size: 14px; color: var(--text-dim);
+  display: flex; align-items: center; gap: 10px;
+}
+.remy-landing .pricing-features li::before {
+  content: '✓';
+  color: var(--blue); font-size: 13px; font-weight: 600;
+}
+
+/* WAITLIST */
+.remy-landing .waitlist {
+  padding: 100px 40px;
+  text-align: center;
+  position: relative; overflow: hidden;
+  background: var(--navy-2);
+  border-top: 1px solid var(--border);
+}
+.remy-landing .waitlist-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(59,130,246,0.08) 0%, transparent 70%);
+}
+.remy-landing .waitlist-inner { max-width: 540px; margin: 0 auto; position: relative; }
+.remy-landing .waitlist-count {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--blue-dim);
+  border: 1px solid var(--border-blue);
+  border-radius: 100px;
+  padding: 6px 16px;
+  margin-bottom: 28px;
+  font-size: 13px; color: #93c5fd;
+}
+.remy-landing .waitlist-count-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue);
+  animation: rl-pulse 2s infinite;
+}
+.remy-landing .waitlist-form {
+  display: flex; gap: 8px;
+  margin-top: 36px;
+  max-width: 460px; margin-left: auto; margin-right: auto;
+}
+.remy-landing .waitlist-input {
+  flex: 1;
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.remy-landing .waitlist-input::placeholder { color: var(--text-dim); }
+.remy-landing .waitlist-input:focus { border-color: var(--border-blue); }
+.remy-landing .waitlist-submit {
+  background: var(--blue);
+  border: none; color: #fff;
+  padding: 14px 24px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 500;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.remy-landing .waitlist-submit:hover { background: #2563eb; }
+.remy-landing .waitlist-note {
+  margin-top: 14px;
+  font-size: 12px; color: var(--text-dim);
+}
+.remy-landing .waitlist-success {
+  flex-direction: column; align-items: center; gap: 14px;
+  margin-top: 36px;
+}
+.remy-landing .waitlist-success-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--blue-dim);
+  border: 1px solid var(--border-blue);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  animation: rl-fadeUp 0.5s both;
+}
+.remy-landing .waitlist-success p {
+  font-size: 15px; color: var(--text-mid);
+  animation: rl-fadeUp 0.5s 0.2s both;
+}
+.remy-landing .waitlist-success strong { color: var(--blue); }
+
+/* FOOTER */
+.remy-landing footer {
+  padding: 48px 60px;
+  border-top: 1px solid var(--border);
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+}
+.remy-landing .footer-logo { display: flex; align-items: center; gap: 10px; }
+.remy-landing .footer-copy { font-size: 13px; color: var(--text-dim); }
+.remy-landing .footer-tagline { font-size: 14px; color: var(--text-dim); }
+
+/* ANIMATIONS */
+@keyframes rl-fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes rl-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+@keyframes rl-scrollPulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+@keyframes rl-glowPulse {
+  0%, 100% { box-shadow: 0 0 0 rgba(59,130,246,0); }
+  50% { box-shadow: 0 0 30px rgba(59,130,246,0.2); }
+}
+
+/* REVEAL */
+.remy-landing .rl-reveal {
+  opacity: 0; transform: translateY(18px);
+  transition: opacity 0.6s, transform 0.6s;
+}
+.remy-landing .rl-reveal.rl-visible { opacity: 1; transform: translateY(0); }
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .remy-landing nav { padding: 16px 20px; }
+  .remy-landing .nav-links { display: none; }
+  .remy-landing .hero { padding: 100px 20px 60px; }
+  .remy-landing footer { flex-direction: column; gap: 16px; text-align: center; padding: 40px 20px; }
+  .remy-landing .waitlist-form { flex-direction: column; }
+}
+`;

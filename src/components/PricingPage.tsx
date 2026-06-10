@@ -15,7 +15,7 @@ export function PricingPage({ isAuthenticated, isPro }: PricingPageProps) {
 
   async function handleUpgrade() {
     if (!isAuthenticated) {
-      router.push("/");
+      router.push("/login");
       return;
     }
     setLoading(true);
@@ -48,7 +48,7 @@ export function PricingPage({ isAuthenticated, isPro }: PricingPageProps) {
           <span className="font-semibold text-sm tracking-wide">REMY</span>
         </button>
         {isAuthenticated && (
-          <button onClick={() => router.push("/")} className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+          <button onClick={() => router.push("/chat")} className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
             Back to chat
           </button>
         )}

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
-export function AuthScreen() {
+export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,7 +17,7 @@ export function AuthScreen() {
   async function handleGoogle() {
     setGoogleLoading(true);
     setError("");
-    await signIn("google", { callbackUrl: "/" });
+    await signIn("google", { callbackUrl });
   }
 
   async function handleSubmit(e: React.FormEvent) {

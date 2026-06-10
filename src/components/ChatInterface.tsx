@@ -70,6 +70,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
     }
   );
   const [limitError, setLimitError] = useState<"MESSAGE_LIMIT" | "SCREENSHOT_LIMIT" | null>(null);
+  const [isStuckMode, setIsStuckMode] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -123,8 +124,8 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
     if (file) handleFileSelect(file);
   }
 
-  async function sendMessage() {
-    const trimmed = input.trim();
+  async function sendMessage(forceContent?: string, forceStuckMode?: boolean) {
+    const trimmed = forceContent ?? input.trim();
     if ((!trimmed && !pendingImage) || isLoading) return;
     if (atMessageLimit) { setLimitError("MESSAGE_LIMIT"); return; }
     if (pendingImage && atScreenshotLimit) { setLimitError("SCREENSHOT_LIMIT"); return; }
@@ -139,7 +140,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
     const nextMessages = [...messages, userMessage];
 
     setMessages(nextMessages);
-    setInput("");
+    if (!forceContent) setInput("");
     setPendingImage(null);
     setIsLoading(true);
 
@@ -150,7 +151,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages, intakeData }),
+        body: JSON.stringify({ messages: nextMessages, intakeData, stuckMode: forceStuckMode ?? isStuckMode }),
       });
 
       if (response.status === 429) {
@@ -222,6 +223,11 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
       setIsLoading(false);
       textareaRef.current?.focus();
     }
+  }
+
+  function handleStuck() {
+    setIsStuckMode(true);
+    sendMessage("I'm stuck — can you walk me through this step by step, more slowly?", true);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -416,7 +422,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
               />
 
               <Button
-                onClick={atMessageLimit ? () => router.push("/pricing") : sendMessage}
+                onClick={atMessageLimit ? () => router.push("/pricing") : () => sendMessage()}
                 disabled={atMessageLimit ? false : ((!input.trim() && !pendingImage) || isLoading)}
                 size="icon"
                 className={cn("shrink-0 h-9 w-9 rounded-full mb-0.5 transition-all duration-200 disabled:opacity-25", atMessageLimit && "bg-amber-500 hover:bg-amber-400")}
@@ -453,14 +459,30 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
           </div>
 
           <div className="flex items-center justify-between">
-            {messages.length > 0 ? (
-              <button
-                onClick={clearChat}
-                className="text-xs text-muted-foreground/35 hover:text-muted-foreground/70 transition-colors duration-200"
-              >
-                Clear conversation
-              </button>
-            ) : <span />}
+            <div className="flex items-center gap-3">
+              {messages.length > 0 && (
+                <button
+                  onClick={clearChat}
+                  className="text-xs text-muted-foreground/35 hover:text-muted-foreground/70 transition-colors duration-200"
+                >
+                  Clear
+                </button>
+              )}
+              {messages.length > 0 && (
+                <button
+                  onClick={handleStuck}
+                  disabled={isLoading}
+                  className={cn(
+                    "text-xs rounded-lg px-2.5 py-1 border transition-all duration-200 disabled:opacity-40",
+                    isStuckMode
+                      ? "text-primary/70 border-primary/30 bg-primary/10"
+                      : "text-muted-foreground/45 border-border/30 hover:text-primary/60 hover:border-primary/25"
+                  )}
+                >
+                  {isStuckMode ? "Guided mode on" : "I'm stuck"}
+                </button>
+              )}
+            </div>
 
             {!usage.isPro && (
               <p className="text-xs text-muted-foreground/30">
