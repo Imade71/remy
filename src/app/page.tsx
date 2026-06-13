@@ -2,6 +2,17 @@
 
 import { useEffect, useRef, useState } from "react";
 
+const PROGRAMS = [
+  { name: "Bubble",          logo: "/logos/bubble.svg" },
+  { name: "Excel",           logo: "/logos/excel.svg" },
+  { name: "Word",            logo: "/logos/word.svg" },
+  { name: "PowerPoint",      logo: "/logos/powerpoint.svg" },
+  { name: "CapCut",          logo: "/logos/capcut.svg" },
+  { name: "Premiere Pro",    logo: "/logos/premiere-pro.svg" },
+  { name: "Webflow",         logo: "/logos/webflow.svg" },
+  { name: "DaVinci Resolve", logo: "/logos/davinci-resolve.svg" },
+];
+
 export default function LandingPage() {
   const [waitlistCount, setWaitlistCount] = useState(247);
   const [waitlistEmail, setWaitlistEmail] = useState("");
@@ -124,6 +135,37 @@ export default function LandingPage() {
               <div className="demo-avatar">R</div>
               <div className="demo-bubble">Click a subtitle clip in your timeline. In the <strong style={{ color: "var(--text)" }}>Inspector panel</strong> on the right, you&apos;ll find Font, Size, and Color. Try <strong style={{ color: "var(--text)" }}>Helvetica Neue</strong> — it works cleanly for most videos...</div>
             </div>
+            <div className="demo-msg user" style={{ animationDelay: "3.4s" }}>
+              <div className="demo-bubble demo-bubble-with-img">
+                <svg className="demo-screenshot-thumb" viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="200" height="130" fill="#1a1a1d"/>
+                  <rect width="200" height="22" fill="#232328"/>
+                  <text x="8" y="15" fill="#999" fontSize="9" fontFamily="system-ui,sans-serif" fontWeight="500">Inspector</text>
+                  <rect x="0" y="22" width="200" height="20" fill="#1e1e22"/>
+                  <rect x="4" y="25" width="34" height="13" fill="#3d3d43" rx="2"/>
+                  <text x="10" y="35" fill="#ddd" fontSize="8" fontFamily="system-ui,sans-serif">Video</text>
+                  <text x="44" y="35" fill="#565656" fontSize="8" fontFamily="system-ui,sans-serif">Text</text>
+                  <text x="74" y="35" fill="#484848" fontSize="8" fontFamily="system-ui,sans-serif">Color</text>
+                  <line x1="0" y1="42" x2="200" y2="42" stroke="#2a2a2e" strokeWidth="1"/>
+                  <text x="8" y="57" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Transform</text>
+                  <rect x="75" y="48" width="115" height="10" fill="#2b2b30" rx="2"/>
+                  <text x="8" y="73" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Position X</text>
+                  <rect x="75" y="64" width="55" height="10" fill="#2b2b30" rx="2"/>
+                  <rect x="135" y="64" width="55" height="10" fill="#2b2b30" rx="2"/>
+                  <text x="8" y="89" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Zoom</text>
+                  <rect x="75" y="80" width="115" height="10" fill="#2b2b30" rx="2"/>
+                  <text x="8" y="105" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Rotation</text>
+                  <rect x="75" y="96" width="115" height="10" fill="#2b2b30" rx="2"/>
+                  <text x="8" y="121" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Opacity</text>
+                  <rect x="75" y="112" width="115" height="10" fill="#2b2b30" rx="2"/>
+                </svg>
+                <span>I don&apos;t see Font anywhere in mine</span>
+              </div>
+            </div>
+            <div className="demo-msg" style={{ animationDelay: "4.3s" }}>
+              <div className="demo-avatar">R</div>
+              <div className="demo-bubble">I can see you&apos;re on the <strong style={{ color: "var(--text)" }}>Video</strong> tab — that&apos;s why Font isn&apos;t showing. Click <strong style={{ color: "var(--text)" }}>Text</strong> (second tab) and Font, Size, and Color will appear right there.</div>
+            </div>
           </div>
         </div>
       </section>
@@ -134,11 +176,9 @@ export default function LandingPage() {
           <p className="section-label rl-reveal">Supported programs</p>
           <h2 className="section-title rl-reveal">One subscription.<br />Every tool you use.</h2>
           <div className="programs-grid rl-reveal">
-            {[
-              "Bubble", "Excel", "Word", "PowerPoint",
-              "CapCut", "Premiere Pro", "Webflow", "DaVinci Resolve",
-            ].map((name) => (
+            {PROGRAMS.map(({ name, logo }) => (
               <div key={name} className="program-item">
+                <img src={logo} alt={name} className="program-logo" />
                 <div className="program-name">{name}</div>
               </div>
             ))}
@@ -534,15 +574,22 @@ const LANDING_CSS = `
   border-radius: 12px;
   padding: 20px 16px;
   display: flex;
+  flex-direction: column;
   align-items: center; justify-content: center;
+  gap: 10px;
   transition: all 0.2s;
   cursor: default;
-  min-height: 64px;
+  min-height: 100px;
 }
 .remy-landing .program-item:hover {
   border-color: var(--border-blue);
   background: var(--navy-3);
   transform: translateY(-2px);
+}
+.remy-landing .program-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
 }
 .remy-landing .program-name {
   font-size: 13px; font-weight: 500;
@@ -793,6 +840,21 @@ const LANDING_CSS = `
 @keyframes rl-glowPulse {
   0%, 100% { box-shadow: 0 0 0 rgba(59,130,246,0); }
   50% { box-shadow: 0 0 30px rgba(59,130,246,0.2); }
+}
+
+/* DEMO SCREENSHOT */
+.remy-landing .demo-msg.user .demo-bubble.demo-bubble-with-img {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.remy-landing .demo-screenshot-thumb {
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  width: 180px;
+  display: block;
 }
 
 /* REVEAL */

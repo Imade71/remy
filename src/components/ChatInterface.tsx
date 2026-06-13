@@ -71,6 +71,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
   );
   const [limitError, setLimitError] = useState<"MESSAGE_LIMIT" | "SCREENSHOT_LIMIT" | null>(null);
   const [isStuckMode, setIsStuckMode] = useState(false);
+  const [hasUsedScreenshot, setHasUsedScreenshot] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,11 +81,17 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
+  useEffect(() => {
+    if (localStorage.getItem("remy_screenshot_used")) setHasUsedScreenshot(true);
+  }, []);
+
   const messagesRemaining = usage.isPro ? Infinity : usage.messagesLimit - usage.messagesUsed;
   const screenshotsRemaining = usage.isPro ? Infinity : usage.screenshotsLimit - usage.screenshotsUsed;
   const atMessageLimit = !usage.isPro && messagesRemaining <= 0;
   const atScreenshotLimit = !usage.isPro && screenshotsRemaining <= 0;
   const nearMessageLimit = !usage.isPro && messagesRemaining > 0 && messagesRemaining <= WARN_THRESHOLD;
+  const userMessageCount = messages.filter((m) => m.role === "user").length;
+  const showScreenshotHint = !hasUsedScreenshot && !atScreenshotLimit && !pendingImage && !atMessageLimit && userMessageCount < 4;
 
   function handleFileSelect(file: File) {
     const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
@@ -93,6 +100,11 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
     if (!usage.isPro && screenshotsRemaining <= 0) {
       setLimitError("SCREENSHOT_LIMIT");
       return;
+    }
+
+    if (!hasUsedScreenshot) {
+      setHasUsedScreenshot(true);
+      localStorage.setItem("remy_screenshot_used", "1");
     }
 
     const reader = new FileReader();
@@ -389,25 +401,32 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
             )}
 
             <div className="flex items-end gap-2 px-3 py-2.5">
-              <button
-                type="button"
-                onClick={() => atScreenshotLimit ? setLimitError("SCREENSHOT_LIMIT") : fileInputRef.current?.click()}
-                disabled={isLoading || atMessageLimit}
-                className={cn(
-                  "group shrink-0 mb-0.5 h-8 w-8 flex items-center justify-center rounded-full border transition-all duration-150 disabled:opacity-30",
-                  pendingImage
-                    ? "text-primary bg-primary/15 border-primary/50 shadow-[0_0_10px_2px] shadow-primary/40"
-                    : atScreenshotLimit
-                    ? "text-amber-500/60 border-amber-500/20"
-                    : "text-primary/60 hover:text-primary hover:bg-primary/12 border-transparent hover:border-primary/25"
+              <div className="relative shrink-0 mb-0.5">
+                {showScreenshotHint && (
+                  <span className="absolute inset-0 rounded-full animate-ping bg-primary/20 pointer-events-none" />
                 )}
-                title={atScreenshotLimit ? "Screenshot limit reached — upgrade to Pro" : "Attach image or screenshot"}
-              >
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-150 group-hover:scale-110">
-                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
-                  <circle cx="12" cy="13" r="3" />
-                </svg>
-              </button>
+                <button
+                  type="button"
+                  onClick={() => atScreenshotLimit ? setLimitError("SCREENSHOT_LIMIT") : fileInputRef.current?.click()}
+                  disabled={isLoading || atMessageLimit}
+                  className={cn(
+                    "group h-8 w-8 flex items-center justify-center rounded-full border transition-all duration-150 disabled:opacity-30",
+                    pendingImage
+                      ? "text-primary bg-primary/15 border-primary/50 shadow-[0_0_10px_2px] shadow-primary/40"
+                      : atScreenshotLimit
+                      ? "text-amber-500/60 border-amber-500/20"
+                      : showScreenshotHint
+                      ? "text-primary/80 border-primary/30 bg-primary/8"
+                      : "text-primary/60 hover:text-primary hover:bg-primary/12 border-transparent hover:border-primary/25"
+                  )}
+                  title={atScreenshotLimit ? "Screenshot limit reached — upgrade to Pro" : "Attach image or screenshot"}
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-150 group-hover:scale-110">
+                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                </button>
+              </div>
 
               <Textarea
                 ref={textareaRef}

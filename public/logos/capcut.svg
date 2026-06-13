@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <rect width="24" height="24" rx="3" fill="#1C1C1E"/>
+  <!-- left handle ring -->
+  <path fill="white" d="M7 5a3 3 0 1 0 0 6A3 3 0 0 0 7 5zm0 1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+  <!-- right handle ring -->
+  <path fill="white" d="M17 5a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm0 1.5a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z"/>
+  <!-- blades crossing at center -->
+  <path fill="white" d="M9.3 9.7l9 8.5.95-1-9-8.5zM14.7 9.7l-9 8.5-.95-1 9-8.5z"/>
+</svg>
