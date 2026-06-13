@@ -90,8 +90,9 @@ export default function LandingPage() {
           <div className="hero-badge-dot"></div>
           Introducing REMY
         </div>
-        <h1 className="hero-title">Navigate <span>any</span><br />software.</h1>
-        <p className="hero-subtitle">Step by step guidance for any program — right when you need it.</p>
+        <h1 className="hero-title">Stop getting stuck<br />in <span>software.</span></h1>
+        <p className="hero-subtitle">Show Remy your screen — get the exact next step.</p>
+        <p className="hero-hint">📸 Paste or upload a screenshot for instant guidance.</p>
         <div className="hero-actions">
           <a href="/chat" className="btn-primary">Start for free</a>
           <button className="btn-secondary" onClick={() => scrollToId("how")}>See how it works</button>
@@ -102,10 +103,30 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* FEATURES */}
+      <section className="features rl-reveal">
+        <p className="section-label">What makes Remy different</p>
+        <h2 className="section-title">Built for the moment<br />you&apos;re actually stuck.</h2>
+        <div className="features-grid">
+          {([
+            { icon: "📸", title: "Screenshot Analysis", body: "Show Remy your screen and get help instantly. Paste any screenshot — Remy sees exactly what you see." },
+            { icon: "🎯", title: "Goal-First Onboarding", body: "Tell Remy what you're trying to build. It maps your goal to your exact software and gives you a clear plan from the start." },
+            { icon: "🧠", title: "Memory", body: "Remy remembers your project across sessions so you never have to re-explain where you left off." },
+            { icon: "🎙️", title: "Adapts to You", body: "Direct or hand-holding, fast or slow — Remy reads how you communicate and matches your style automatically." },
+          ] as { icon: string; title: string; body: string }[]).map(({ icon, title, body }, i) => (
+            <div key={title} className={`feature-card${i === 0 ? " feature-card-highlight" : ""}`}>
+              <span className="feature-icon">{icon}</span>
+              <div className="feature-title">{title}</div>
+              <p className="feature-body">{body}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* DEMO */}
       <section className="demo rl-reveal">
-        <p className="section-label">See REMY in action</p>
-        <h2 className="section-title">Your guide.<br />Any program.</h2>
+        <p className="section-label">Real example</p>
+        <h2 className="section-title">Share your screen.<br />Get the exact fix.</h2>
         <div className="demo-window">
           <div className="demo-bar">
             <div className="demo-dots">
@@ -117,54 +138,47 @@ export default function LandingPage() {
             <div style={{ width: "48px" }}></div>
           </div>
           <div className="demo-messages">
-            <div className="demo-msg" style={{ animationDelay: "0.3s" }}>
-              <div className="demo-avatar">R</div>
-              <div className="demo-bubble">Hey! Which program do you need help with today?</div>
-            </div>
-            <div className="demo-msg user" style={{ animationDelay: "0.8s" }}>
-              <div className="demo-bubble">DaVinci Resolve — I want to add subtitles to my video</div>
+            <div className="demo-msg user" style={{ animationDelay: "0.3s" }}>
+              <div className="demo-bubble demo-bubble-with-img">
+                <svg className="demo-screenshot-thumb" viewBox="0 0 260 160" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="260" height="160" fill="#f8fafc"/>
+                  <rect width="260" height="24" fill="#1e293b"/>
+                  <circle cx="10" cy="12" r="3.5" fill="#ff5f57"/>
+                  <circle cx="22" cy="12" r="3.5" fill="#febc2e"/>
+                  <circle cx="34" cy="12" r="3.5" fill="#28c840"/>
+                  <text x="130" y="16" fill="#64748b" fontSize="8" fontFamily="system-ui,sans-serif" textAnchor="middle">Bubble — Workflow Editor</text>
+                  <rect x="0" y="24" width="50" height="136" fill="#f1f5f9"/>
+                  <rect x="0" y="24" width="50" height="136" fill="none" stroke="#e2e8f0" strokeWidth="1"/>
+                  <text x="25" y="40" fill="#94a3b8" fontSize="7" fontFamily="system-ui,sans-serif" textAnchor="middle">EVENTS</text>
+                  <rect x="4" y="45" width="42" height="16" rx="3" fill="#dbeafe"/>
+                  <text x="25" y="57" fill="#3b82f6" fontSize="7" fontFamily="system-ui,sans-serif" textAnchor="middle">Button A</text>
+                  <rect x="60" y="32" width="188" height="28" rx="5" fill="#3b82f6"/>
+                  <text x="70" y="47" fill="white" fontSize="8.5" fontFamily="system-ui,sans-serif" fontWeight="600">⚡ Button A is clicked</text>
+                  <text x="70" y="57" fill="rgba(255,255,255,0.65)" fontSize="7" fontFamily="system-ui,sans-serif">Trigger</text>
+                  <line x1="154" y1="60" x2="154" y2="72" stroke="#94a3b8" strokeWidth="1.5"/>
+                  <polygon points="150,70 154,76 158,70" fill="#94a3b8"/>
+                  <rect x="60" y="76" width="188" height="36" rx="5" fill="white" stroke="#f59e0b" strokeWidth="1.5" strokeDasharray="5,3"/>
+                  <text x="70" y="92" fill="#d97706" fontSize="8.5" fontFamily="system-ui,sans-serif" fontWeight="600">▸ Condition</text>
+                  <text x="70" y="105" fill="#94a3b8" fontSize="7.5" fontFamily="system-ui,sans-serif">Empty — click to add a condition</text>
+                  <line x1="154" y1="112" x2="154" y2="124" stroke="#e2e8f0" strokeWidth="1.5"/>
+                  <polygon points="150,122 154,128 158,122" fill="#e2e8f0"/>
+                  <rect x="60" y="128" width="188" height="24" rx="5" fill="#f8fafc" stroke="#e2e8f0" strokeWidth="1"/>
+                  <text x="70" y="142" fill="#cbd5e1" fontSize="8.5" fontFamily="system-ui,sans-serif">Make changes to a Thing...</text>
+                  <text x="70" y="150" fill="#e2e8f0" fontSize="7" fontFamily="system-ui,sans-serif">Action</text>
+                </svg>
+                <span>Why isn&apos;t this workflow running? The button click isn&apos;t triggering anything.</span>
+              </div>
             </div>
             <div className="demo-msg" style={{ animationDelay: "1.4s" }}>
               <div className="demo-avatar">R</div>
-              <div className="demo-bubble">Go to the <strong style={{ color: "var(--text)" }}>Edit</strong> page, then click <strong style={{ color: "var(--text)" }}>Fusion</strong> in the top menu and select <strong style={{ color: "var(--text)" }}>Subtitles</strong>. Drag a subtitle track to your timeline. Want me to walk you through styling them next?</div>
+              <div className="demo-bubble">Your condition is empty, which is why the workflow never runs. Click the condition step and add a rule — for example, check that the input&apos;s value is not empty — and it will start executing.</div>
             </div>
-            <div className="demo-msg user" style={{ animationDelay: "2s" }}>
-              <div className="demo-bubble">Yes please</div>
+            <div className="demo-msg user" style={{ animationDelay: "2.6s" }}>
+              <div className="demo-bubble">My Excel formula keeps showing #REF! and I don&apos;t know why.</div>
             </div>
-            <div className="demo-msg" style={{ animationDelay: "2.6s" }}>
+            <div className="demo-msg" style={{ animationDelay: "3.6s" }}>
               <div className="demo-avatar">R</div>
-              <div className="demo-bubble">Click a subtitle clip in your timeline. In the <strong style={{ color: "var(--text)" }}>Inspector panel</strong> on the right, you&apos;ll find Font, Size, and Color. Try <strong style={{ color: "var(--text)" }}>Helvetica Neue</strong> — it works cleanly for most videos...</div>
-            </div>
-            <div className="demo-msg user" style={{ animationDelay: "3.4s" }}>
-              <div className="demo-bubble demo-bubble-with-img">
-                <svg className="demo-screenshot-thumb" viewBox="0 0 200 130" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="200" height="130" fill="#1a1a1d"/>
-                  <rect width="200" height="22" fill="#232328"/>
-                  <text x="8" y="15" fill="#999" fontSize="9" fontFamily="system-ui,sans-serif" fontWeight="500">Inspector</text>
-                  <rect x="0" y="22" width="200" height="20" fill="#1e1e22"/>
-                  <rect x="4" y="25" width="34" height="13" fill="#3d3d43" rx="2"/>
-                  <text x="10" y="35" fill="#ddd" fontSize="8" fontFamily="system-ui,sans-serif">Video</text>
-                  <text x="44" y="35" fill="#565656" fontSize="8" fontFamily="system-ui,sans-serif">Text</text>
-                  <text x="74" y="35" fill="#484848" fontSize="8" fontFamily="system-ui,sans-serif">Color</text>
-                  <line x1="0" y1="42" x2="200" y2="42" stroke="#2a2a2e" strokeWidth="1"/>
-                  <text x="8" y="57" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Transform</text>
-                  <rect x="75" y="48" width="115" height="10" fill="#2b2b30" rx="2"/>
-                  <text x="8" y="73" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Position X</text>
-                  <rect x="75" y="64" width="55" height="10" fill="#2b2b30" rx="2"/>
-                  <rect x="135" y="64" width="55" height="10" fill="#2b2b30" rx="2"/>
-                  <text x="8" y="89" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Zoom</text>
-                  <rect x="75" y="80" width="115" height="10" fill="#2b2b30" rx="2"/>
-                  <text x="8" y="105" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Rotation</text>
-                  <rect x="75" y="96" width="115" height="10" fill="#2b2b30" rx="2"/>
-                  <text x="8" y="121" fill="#666" fontSize="7" fontFamily="system-ui,sans-serif">Opacity</text>
-                  <rect x="75" y="112" width="115" height="10" fill="#2b2b30" rx="2"/>
-                </svg>
-                <span>I don&apos;t see Font anywhere in mine</span>
-              </div>
-            </div>
-            <div className="demo-msg" style={{ animationDelay: "4.3s" }}>
-              <div className="demo-avatar">R</div>
-              <div className="demo-bubble">I can see you&apos;re on the <strong style={{ color: "var(--text)" }}>Video</strong> tab — that&apos;s why Font isn&apos;t showing. Click <strong style={{ color: "var(--text)" }}>Text</strong> (second tab) and Font, Size, and Color will appear right there.</div>
+              <div className="demo-bubble">A <strong style={{ color: "var(--text)" }}>#REF!</strong> error means the formula is pointing at a cell that&apos;s been deleted. Click the cell, look at the formula bar for the part that says <strong style={{ color: "var(--text)" }}>#REF!</strong>, and re-select the range it should point to — that&apos;ll fix it.</div>
             </div>
           </div>
         </div>
@@ -442,9 +456,15 @@ const LANDING_CSS = `
   font-size: clamp(16px, 2.5vw, 22px);
   font-weight: 400;
   color: var(--text-mid);
-  margin-bottom: 48px;
+  margin-bottom: 10px;
   animation: rl-fadeUp 0.6s 0.35s both;
   max-width: 500px;
+}
+.remy-landing .hero-hint {
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 48px;
+  animation: rl-fadeUp 0.6s 0.42s both;
 }
 .remy-landing .hero-actions {
   display: flex; gap: 12px; align-items: center;
@@ -485,6 +505,47 @@ const LANDING_CSS = `
   width: 1px; height: 36px;
   background: linear-gradient(to bottom, var(--blue), transparent);
   animation: rl-scrollPulse 2s infinite;
+}
+
+/* FEATURES */
+.remy-landing .features {
+  padding: 80px 40px 60px;
+  max-width: 1000px; margin: 0 auto;
+}
+.remy-landing .features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-top: 48px;
+}
+.remy-landing .feature-card {
+  background: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px 24px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.remy-landing .feature-card-highlight {
+  border-color: var(--border-blue);
+  background: var(--navy-3);
+}
+.remy-landing .feature-card:hover {
+  border-color: var(--border-blue);
+  transform: translateY(-2px);
+}
+.remy-landing .feature-icon {
+  font-size: 22px;
+  margin-bottom: 14px;
+  display: block;
+}
+.remy-landing .feature-title {
+  font-size: 15px; font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.remy-landing .feature-body {
+  font-size: 13px; line-height: 1.7;
+  color: var(--text-dim);
 }
 
 /* DEMO */
