@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
 const PROGRAMS = [
@@ -14,19 +14,40 @@ const PROGRAMS = [
   "Other",
 ];
 
+const OTHER_PROGRAMS = [
+  "Notion", "Canva", "Figma", "Google Sheets", "Google Docs",
+  "Google Slides", "Photoshop", "Illustrator", "InDesign", "After Effects",
+  "Final Cut Pro", "Premiere Pro", "Airtable", "Shopify", "Wix",
+  "Squarespace", "WordPress", "Framer", "Monday.com", "Asana",
+  "Trello", "HubSpot", "Salesforce", "Mailchimp", "Zapier",
+  "Make", "Glide", "Adalo", "FlutterFlow", "QuickBooks",
+  "Xero", "Stripe", "Keynote", "Pages", "Slack",
+];
+
 const FAMILIARITY = [
   { label: "Completely new to this", description: "Haven't opened it yet" },
   { label: "I've tried but get stuck", description: "Some experience, needs guidance" },
   { label: "I mostly know what I'm doing", description: "Just need targeted help" },
 ];
 
-const CHIPS = [
-  "Build an app",
-  "Create a dashboard",
-  "Learn the basics",
-  "Fix a workflow",
-  "Build a marketplace",
-];
+const CHIPS_BY_PROGRAM: Record<string, string[]> = {
+  builder: ["Build an app", "Fix a workflow", "Create a dashboard", "Build a marketplace", "Learn the basics"],
+  excel:   ["Fix a formula", "Build a spreadsheet", "Create a chart", "Organize my data", "Learn the basics"],
+  word:    ["Format a document", "Fix my layout", "Set up a template", "Add a table of contents", "Learn the basics"],
+  powerpoint: ["Design a presentation", "Fix my slides", "Add animations", "Make it look professional", "Learn the basics"],
+  video:   ["Edit a video", "Add transitions", "Fix my audio", "Export my project", "Learn the basics"],
+  default: ["Get started", "Fix a problem", "Learn the basics"],
+};
+
+function getChips(program: string): string[] {
+  const p = program.toLowerCase();
+  if (["bubble", "webflow"].some((n) => p.includes(n))) return CHIPS_BY_PROGRAM.builder;
+  if (p.includes("excel") || p.includes("google sheets")) return CHIPS_BY_PROGRAM.excel;
+  if (p.includes("word") || p.includes("google docs") || p.includes("pages")) return CHIPS_BY_PROGRAM.word;
+  if (p.includes("powerpoint") || p.includes("google slides") || p.includes("keynote")) return CHIPS_BY_PROGRAM.powerpoint;
+  if (["capcut", "premiere", "davinci", "final cut"].some((n) => p.includes(n))) return CHIPS_BY_PROGRAM.video;
+  return CHIPS_BY_PROGRAM.default;
+}
 
 const REASSURANCE = "No technical experience needed. We'll guide you step by step.";
 
@@ -51,6 +72,18 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
   const [familiarity, setFamiliarity] = useState("");
   const [selectedProgram, setSelectedProgram] = useState("");
 
+  // "Other" autocomplete state
+  const [otherInput, setOtherInput] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const otherInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredSuggestions =
+    otherInput.trim().length > 0
+      ? OTHER_PROGRAMS.filter((p) =>
+          p.toLowerCase().includes(otherInput.toLowerCase())
+        ).slice(0, 6)
+      : OTHER_PROGRAMS.slice(0, 6);
+
   function transition(fn: () => void) {
     setExiting(true);
     setTimeout(() => {
@@ -61,11 +94,30 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
   }
 
   function handleProgramSelect(p: string) {
+    if (p === "Other") {
+      setSelectedProgram("Other");
+      setOtherInput("");
+      setShowSuggestions(false);
+      setTimeout(() => otherInputRef.current?.focus(), 60);
+      return;
+    }
     setSelectedProgram(p);
     setTimeout(() => {
       setProgram(p);
       transition(() => setStep(2));
     }, 110);
+  }
+
+  function handleSuggestionSelect(s: string) {
+    setOtherInput(s);
+    setShowSuggestions(false);
+  }
+
+  function handleOtherSubmit() {
+    const val = otherInput.trim();
+    if (!val) return;
+    setProgram(val);
+    transition(() => setStep(2));
   }
 
   function handleGoalContinue() {
@@ -157,6 +209,66 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                   </button>
                 ))}
               </div>
+
+              {/* Other — autocomplete reveal */}
+              {selectedProgram === "Other" && (
+                <div className="animate-in fade-in-0 slide-in-from-bottom-2 duration-200 space-y-2">
+                  <div className="relative">
+                    <input
+                      ref={otherInputRef}
+                      type="text"
+                      value={otherInput}
+                      onChange={(e) => {
+                        setOtherInput(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleOtherSubmit();
+                        }
+                        if (e.key === "Escape") setShowSuggestions(false);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      onBlur={() =>
+                        setTimeout(() => setShowSuggestions(false), 150)
+                      }
+                      placeholder="Which program?"
+                      className="w-full rounded-2xl border border-primary/50 bg-card/60 px-5 py-4 text-sm placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary/70 focus:shadow-sm focus:shadow-primary/10 transition-all duration-200 backdrop-blur-sm"
+                    />
+
+                    {showSuggestions && filteredSuggestions.length > 0 && (
+                      <div className="absolute top-full left-0 right-0 mt-1.5 rounded-2xl border border-border/50 bg-card/95 backdrop-blur-sm shadow-xl z-10 overflow-hidden">
+                        {filteredSuggestions.map((s) => (
+                          <button
+                            key={s}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSuggestionSelect(s);
+                            }}
+                            className="w-full text-left px-5 py-3 text-sm text-muted-foreground/80 hover:bg-primary/10 hover:text-primary transition-colors duration-150"
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={handleOtherSubmit}
+                    className={cn(
+                      "w-full rounded-2xl bg-primary px-5 py-3.5 text-sm font-semibold text-primary-foreground transition-all duration-300",
+                      otherInput.trim()
+                        ? "opacity-100 translate-y-0 pointer-events-auto shadow-lg shadow-primary/25 hover:bg-primary/85 hover:shadow-xl hover:shadow-primary/35 hover:scale-[1.01]"
+                        : "opacity-0 translate-y-2 pointer-events-none"
+                    )}
+                  >
+                    Continue
+                  </button>
+                </div>
+              )}
+
               <p className="text-xs text-muted-foreground/35 text-center">{REASSURANCE}</p>
             </div>
           )}
@@ -193,7 +305,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
 
                 {/* Suggestion chips */}
                 <div className="flex flex-wrap gap-2">
-                  {CHIPS.map((chip) => (
+                  {getChips(program).map((chip) => (
                     <button
                       key={chip}
                       onClick={() => setGoal(chip)}
