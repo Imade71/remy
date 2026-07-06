@@ -31,21 +31,44 @@ const FAMILIARITY = [
 ];
 
 const CHIPS_BY_PROGRAM: Record<string, string[]> = {
-  builder: ["Build an app", "Fix a workflow", "Create a dashboard", "Build a marketplace", "Learn the basics"],
-  excel:   ["Fix a formula", "Build a spreadsheet", "Create a chart", "Organize my data", "Learn the basics"],
-  word:    ["Format a document", "Fix my layout", "Set up a template", "Add a table of contents", "Learn the basics"],
-  powerpoint: ["Design a presentation", "Fix my slides", "Add animations", "Make it look professional", "Learn the basics"],
-  video:   ["Edit a video", "Add transitions", "Fix my audio", "Export my project", "Learn the basics"],
-  default: ["Get started", "Fix a problem", "Learn the basics"],
+  builder:       ["Build an app", "Fix a workflow", "Create a dashboard", "Build a marketplace", "Learn the basics"],
+  excel:         ["Fix a formula", "Build a spreadsheet", "Create a chart", "Organize my data", "Learn the basics"],
+  word:          ["Format a document", "Fix my layout", "Set up a template", "Add a table of contents", "Learn the basics"],
+  docs:          ["Format a document", "Fix my layout", "Set up a template", "Learn the basics"],
+  powerpoint:    ["Design a presentation", "Fix my slides", "Add animations", "Make it look professional", "Learn the basics"],
+  video:         ["Edit a video", "Add transitions", "Fix my audio", "Export my project", "Learn the basics"],
+  design:        ["Start a design", "Fix my layout", "Work with images", "Export my work", "Learn the basics"],
+  website:       ["Build my site", "Set up a page", "Fix my layout", "Connect a domain", "Learn the basics"],
+  nocode:        ["Build an app", "Fix a workflow", "Connect my data", "Publish my app", "Learn the basics"],
+  projectmgmt:   ["Set up a board", "Organize my tasks", "Create a template", "Fix my workflow", "Learn the basics"],
+  crm:           ["Set up a campaign", "Organize my contacts", "Build a workflow", "Create a template", "Learn the basics"],
+  automation:    ["Build an automation", "Connect two apps", "Fix my workflow", "Learn the basics"],
+  accounting:    ["Set up my account", "Create an invoice", "Fix a transaction", "Run a report", "Learn the basics"],
+  communication: ["Set up my workspace", "Organize channels", "Fix a notification", "Learn the basics"],
+  default:       ["Get started", "Fix a problem", "Learn the basics"],
 };
 
 function getChips(program: string): string[] {
-  const p = program.toLowerCase();
-  if (["bubble", "webflow"].some((n) => p.includes(n))) return CHIPS_BY_PROGRAM.builder;
-  if (p.includes("excel") || p.includes("google sheets")) return CHIPS_BY_PROGRAM.excel;
-  if (p.includes("word") || p.includes("google docs") || p.includes("pages")) return CHIPS_BY_PROGRAM.word;
-  if (p.includes("powerpoint") || p.includes("google slides") || p.includes("keynote")) return CHIPS_BY_PROGRAM.powerpoint;
-  if (["capcut", "premiere", "davinci", "final cut"].some((n) => p.includes(n))) return CHIPS_BY_PROGRAM.video;
+  const p = program.toLowerCase().trim();
+  // Card programs — exact names
+  if (p === "bubble" || p === "webflow")      return CHIPS_BY_PROGRAM.builder;
+  if (p === "excel")                           return CHIPS_BY_PROGRAM.excel;
+  if (p === "word")                            return CHIPS_BY_PROGRAM.word;
+  if (p === "powerpoint")                      return CHIPS_BY_PROGRAM.powerpoint;
+  if (p === "capcut" || p === "davinci resolve") return CHIPS_BY_PROGRAM.video;
+  // Other programs — substring matches safe in program-name context
+  if (["google docs", "pages"].some((n) => p.includes(n)))                               return CHIPS_BY_PROGRAM.docs;
+  if (["google sheets", "airtable"].some((n) => p.includes(n)))                          return CHIPS_BY_PROGRAM.excel;
+  if (["google slides", "keynote"].some((n) => p.includes(n)))                           return CHIPS_BY_PROGRAM.powerpoint;
+  if (["canva", "figma", "photoshop", "illustrator", "indesign", "framer"].some((n) => p.includes(n))) return CHIPS_BY_PROGRAM.design;
+  if (["after effects", "final cut", "premiere"].some((n) => p.includes(n)))             return CHIPS_BY_PROGRAM.video;
+  if (["shopify", "wix", "squarespace", "wordpress"].some((n) => p.includes(n)))         return CHIPS_BY_PROGRAM.website;
+  if (["glide", "adalo", "flutterflow"].some((n) => p.includes(n)))                      return CHIPS_BY_PROGRAM.nocode;
+  if (["monday", "asana", "trello", "notion"].some((n) => p.includes(n)))                return CHIPS_BY_PROGRAM.projectmgmt;
+  if (["hubspot", "salesforce", "mailchimp"].some((n) => p.includes(n)))                 return CHIPS_BY_PROGRAM.crm;
+  if (p.includes("zapier") || p === "make")                                               return CHIPS_BY_PROGRAM.automation;
+  if (["quickbooks", "xero", "stripe"].some((n) => p.includes(n)))                       return CHIPS_BY_PROGRAM.accounting;
+  if (p.includes("slack"))                                                                return CHIPS_BY_PROGRAM.communication;
   return CHIPS_BY_PROGRAM.default;
 }
 
@@ -93,6 +116,31 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
     }, 220);
   }
 
+  // Push a real history entry per forward step so the browser back button
+  // steps back through the intake instead of leaving the page entirely.
+  function advance(next: 2 | 3 | "summary") {
+    window.history.pushState({ intakeStep: next }, "");
+    transition(() => setStep(next));
+  }
+
+  // Tag the entry we mounted on as step 1, so back-navigating into it (from
+  // step 2) restores step 1 instead of just landing on an untagged entry.
+  useEffect(() => {
+    window.history.replaceState({ intakeStep: 1 }, "");
+  }, []);
+
+  useEffect(() => {
+    function onPopState(event: PopStateEvent) {
+      const s = (event.state as { intakeStep?: Step } | null)?.intakeStep;
+      if (s === 1 || s === 2 || s === 3 || s === "summary") {
+        transition(() => setStep(s));
+      }
+    }
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function handleProgramSelect(p: string) {
     if (p === "Other") {
       setSelectedProgram("Other");
@@ -104,7 +152,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
     setSelectedProgram(p);
     setTimeout(() => {
       setProgram(p);
-      transition(() => setStep(2));
+      advance(2);
     }, 110);
   }
 
@@ -117,22 +165,21 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
     const val = otherInput.trim();
     if (!val) return;
     setProgram(val);
-    transition(() => setStep(2));
+    advance(2);
   }
 
   function handleGoalContinue() {
     if (!goal.trim()) return;
-    transition(() => setStep(3));
+    advance(3);
   }
 
   function handleBack() {
-    if (step === 2) transition(() => setStep(1));
-    else if (step === 3) transition(() => setStep(2));
+    window.history.back();
   }
 
   function handleFamiliaritySelect(f: string) {
     setFamiliarity(f);
-    transition(() => setStep("summary"));
+    advance("summary");
   }
 
   function handleConfirm() {
@@ -416,7 +463,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                   Let&apos;s get started
                 </button>
                 <button
-                  onClick={() => transition(() => setStep(3))}
+                  onClick={handleBack}
                   className="w-full text-xs text-muted-foreground/45 hover:text-muted-foreground/70 transition-colors py-1"
                 >
                   ← Go back

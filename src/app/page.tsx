@@ -930,6 +930,8 @@ const LANDING_CSS = `
   .remy-landing nav { padding: 16px 20px; }
   .remy-landing .nav-links { display: none; }
   .remy-landing .hero { padding: 100px 20px 60px; }
+  .remy-landing .features { padding: 60px 20px 40px; }
+  .remy-landing .features-grid { grid-template-columns: 1fr; margin-top: 32px; }
   .remy-landing footer { flex-direction: column; gap: 16px; text-align: center; padding: 40px 20px; }
   .remy-landing .waitlist-form { flex-direction: column; }
 }
