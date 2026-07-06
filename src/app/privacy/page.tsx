@@ -6,9 +6,10 @@ export default function PrivacyPolicy() {
   return (
     <div className="h-screen overflow-y-auto bg-background text-foreground">
       <header className="flex items-center justify-between px-8 py-5 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">R</div>
-          <span className="font-semibold text-sm tracking-wide">REMY</span>
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+          <span className="text-lg font-extrabold tracking-tight">
+            remy<span className="text-primary">.</span>
+          </span>
         </Link>
         <Link href="/" className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">
           ← Back

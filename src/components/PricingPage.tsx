@@ -43,9 +43,10 @@ export function PricingPage({ isAuthenticated, isPro }: PricingPageProps) {
     <div className="h-screen overflow-y-auto bg-background text-foreground">
       {/* Header */}
       <header className="flex items-center justify-between px-8 py-5 border-b border-border/50 bg-background/80 backdrop-blur-md">
-        <button onClick={() => router.push("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">R</div>
-          <span className="font-semibold text-sm tracking-wide">REMY</span>
+        <button onClick={() => router.push("/")} className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+          <span className="text-lg font-extrabold tracking-tight">
+            remy<span className="text-primary">.</span>
+          </span>
         </button>
         {isAuthenticated && (
           <button onClick={() => router.push("/chat")} className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">

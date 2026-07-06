@@ -70,9 +70,15 @@ export default function LandingPage() {
 
       {/* NAV */}
       <nav>
-        <a href="#" className="nav-logo">
-          <div className="nav-logo-mark">R</div>
-          <span className="nav-logo-text">REMY</span>
+        <a
+          href="#"
+          className="nav-logo"
+          onClick={(e) => {
+            e.preventDefault();
+            containerRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        >
+          <span className="nav-wordmark">remy<span className="nav-wordmark-dot">.</span></span>
         </a>
         <ul className="nav-links">
           <li><a href="#how" onClick={(e) => { e.preventDefault(); scrollToId("how"); }}>How it works</a></li>
@@ -369,6 +375,7 @@ const LANDING_CSS = `
 .remy-landing .nav-logo {
   display: flex; align-items: center; gap: 10px;
   text-decoration: none;
+  cursor: pointer;
 }
 .remy-landing .nav-logo-mark {
   width: 32px; height: 32px;
@@ -380,6 +387,17 @@ const LANDING_CSS = `
 .remy-landing .nav-logo-text {
   font-size: 16px; font-weight: 600; color: var(--text);
   letter-spacing: 0.5px;
+}
+.remy-landing .nav-wordmark {
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+  font-size: 22px;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  line-height: 1;
+}
+.remy-landing .nav-wordmark-dot {
+  color: var(--blue);
 }
 .remy-landing .nav-links {
   display: flex; align-items: center; gap: 36px;

@@ -266,11 +266,10 @@ function Header({
             </svg>
           </button>
         )}
-        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground text-xs font-bold">
-            R
-          </div>
-          <span className="font-semibold text-sm tracking-wide">REMY</span>
+        <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer">
+          <span className="text-lg font-extrabold tracking-tight">
+            remy<span className="text-primary">.</span>
+          </span>
         </Link>
       </div>
 
