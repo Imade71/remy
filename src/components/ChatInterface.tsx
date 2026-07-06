@@ -300,7 +300,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
               </button>
               <button
                 onClick={() => setLimitError(null)}
-                className="text-xs text-muted-foreground/50 hover:text-muted-foreground/80 transition-colors"
+                className="text-xs text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors"
               >
                 Maybe later
               </button>
@@ -482,7 +482,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
               {messages.length > 0 && (
                 <button
                   onClick={clearChat}
-                  className="text-xs text-muted-foreground/35 hover:text-muted-foreground/70 transition-colors duration-200"
+                  className="text-xs px-2.5 py-1 rounded-lg border border-border text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors duration-200"
                 >
                   Clear
                 </button>
@@ -492,10 +492,10 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
                   onClick={handleStuck}
                   disabled={isLoading}
                   className={cn(
-                    "text-xs rounded-lg px-2.5 py-1 border transition-all duration-200 disabled:opacity-40",
+                    "text-xs font-medium rounded-lg px-3 py-1.5 transition-colors duration-200 disabled:opacity-40 shadow-sm",
                     isStuckMode
-                      ? "text-primary/70 border-primary/30 bg-primary/10"
-                      : "text-muted-foreground/45 border-border/30 hover:text-primary/60 hover:border-primary/25"
+                      ? "bg-[#2563EB] text-white"
+                      : "bg-[#3B82F6] text-white hover:bg-[#2563EB]"
                   )}
                 >
                   {isStuckMode ? "Guided mode on" : "I'm stuck"}
@@ -504,7 +504,7 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
             </div>
 
             {!usage.isPro && (
-              <p className="text-xs text-muted-foreground/30">
+              <p className="text-xs text-muted-foreground/70">
                 {messagesRemaining === Infinity ? "" : `${messagesRemaining} of ${usage.messagesLimit} messages left today`}
               </p>
             )}

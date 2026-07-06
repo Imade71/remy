@@ -345,7 +345,7 @@ const LANDING_CSS = `
   --blue-dim: rgba(59,130,246,0.12);
   --blue-glow: rgba(59,130,246,0.25);
   --text: #f1f5f9;
-  --text-dim: #64748b;
+  --text-dim: #cbd5e1;
   --text-mid: #94a3b8;
   --border: rgba(255,255,255,0.07);
   --border-blue: rgba(59,130,246,0.25);

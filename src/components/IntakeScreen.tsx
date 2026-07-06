@@ -232,13 +232,13 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
           {step === 1 && (
             <div className="space-y-8">
               <div className="space-y-2 text-center">
-                <p className="text-[11px] text-muted-foreground/40 tracking-widest uppercase">
+                <p className="text-[11px] text-muted-foreground/70 tracking-widest uppercase">
                   Step 1 of 3
                 </p>
                 <h2 className="text-2xl font-semibold tracking-tight">
                   What program do you need help with?
                 </h2>
-                <p className="text-xs text-muted-foreground/40 mt-1">No wrong answers.</p>
+                <p className="text-xs text-muted-foreground/70 mt-1">No wrong answers.</p>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 {PROGRAMS.map((p) => (
@@ -316,7 +316,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                 </div>
               )}
 
-              <p className="text-xs text-muted-foreground/35 text-center">{REASSURANCE}</p>
+              <p className="text-xs text-muted-foreground/70 text-center">{REASSURANCE}</p>
             </div>
           )}
 
@@ -324,13 +324,13 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
           {step === 2 && (
             <div className="space-y-8">
               <div className="space-y-2 text-center">
-                <p className="text-[11px] text-muted-foreground/40 tracking-widest uppercase">
+                <p className="text-[11px] text-muted-foreground/70 tracking-widest uppercase">
                   Step 2 of 3
                 </p>
                 <h2 className="text-2xl font-semibold tracking-tight">
                   What are you trying to do?
                 </h2>
-                <p className="text-sm text-muted-foreground/45">
+                <p className="text-sm text-muted-foreground/70">
                   Even a rough idea is enough.
                 </p>
               </div>
@@ -356,7 +356,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                     <button
                       key={chip}
                       onClick={() => setGoal(chip)}
-                      className="rounded-full border border-border/40 bg-card/40 px-3.5 py-1.5 text-xs text-muted-foreground/60 transition-all duration-200 hover:border-primary/55 hover:bg-primary/12 hover:text-primary hover:shadow-sm hover:shadow-primary/12 hover:scale-[1.03] active:scale-[0.97]"
+                      className="rounded-full border border-border/40 bg-card/40 px-3.5 py-1.5 text-xs text-muted-foreground/70 transition-all duration-200 hover:border-primary/55 hover:bg-primary/12 hover:text-primary hover:shadow-sm hover:shadow-primary/12 hover:scale-[1.03] active:scale-[0.97]"
                     >
                       {chip}
                     </button>
@@ -378,12 +378,12 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
 
                 <button
                   onClick={handleBack}
-                  className="w-full text-xs text-muted-foreground/45 hover:text-muted-foreground/70 transition-colors py-1"
+                  className="w-full text-xs text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors py-1"
                 >
                   ← Previous
                 </button>
 
-                <p className="text-xs text-muted-foreground/35 text-center">{REASSURANCE}</p>
+                <p className="text-xs text-muted-foreground/70 text-center">{REASSURANCE}</p>
               </div>
             </div>
           )}
@@ -392,13 +392,13 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
           {step === 3 && (
             <div className="space-y-8">
               <div className="space-y-2 text-center">
-                <p className="text-[11px] text-muted-foreground/40 tracking-widest uppercase">
+                <p className="text-[11px] text-muted-foreground/70 tracking-widest uppercase">
                   Step 3 of 3
                 </p>
                 <h2 className="text-2xl font-semibold tracking-tight">
                   How familiar are you with {program}?
                 </h2>
-                <p className="text-xs text-muted-foreground/40">
+                <p className="text-xs text-muted-foreground/70">
                   No wrong answers — you can change this later.
                 </p>
               </div>
@@ -410,18 +410,18 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                     className="rounded-2xl border border-border/50 bg-card/60 px-5 py-4 text-left transition-all duration-200 hover:border-primary/60 hover:bg-primary/10 hover:shadow-md hover:shadow-primary/15 hover:scale-[1.02] active:scale-[0.99] backdrop-blur-sm"
                   >
                     <p className="text-sm font-medium">{f.label}</p>
-                    <p className="text-xs text-muted-foreground/50 mt-0.5">{f.description}</p>
+                    <p className="text-xs text-muted-foreground/70 mt-0.5">{f.description}</p>
                   </button>
                 ))}
               </div>
               <button
                 onClick={handleBack}
-                className="w-full text-xs text-muted-foreground/45 hover:text-muted-foreground/70 transition-colors py-1"
+                className="w-full text-xs text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors py-1"
               >
                 ← Previous
               </button>
 
-              <p className="text-xs text-muted-foreground/35 text-center">{REASSURANCE}</p>
+              <p className="text-xs text-muted-foreground/70 text-center">{REASSURANCE}</p>
             </div>
           )}
 
@@ -445,7 +445,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                     className="rounded-2xl border border-border/50 bg-card/60 px-5 py-4 backdrop-blur-sm animate-in fade-in-0 slide-in-from-bottom-3 duration-500 fill-mode-both"
                     style={{ animationDelay: `${i * 160}ms` }}
                   >
-                    <p className="text-[10px] text-muted-foreground/40 uppercase tracking-widest mb-1">
+                    <p className="text-[10px] text-muted-foreground/70 uppercase tracking-widest mb-1">
                       {item.label}
                     </p>
                     <p className="text-sm font-medium">{item.value}</p>
@@ -464,7 +464,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                 </button>
                 <button
                   onClick={handleBack}
-                  className="w-full text-xs text-muted-foreground/45 hover:text-muted-foreground/70 transition-colors py-1"
+                  className="w-full text-xs text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors py-1"
                 >
                   ← Go back
                 </button>
@@ -479,7 +479,7 @@ export function IntakeScreen({ onComplete }: IntakeScreenProps) {
                 <h2 className="text-2xl font-semibold tracking-tight">
                   Remy is preparing your workspace…
                 </h2>
-                <p className="text-sm text-muted-foreground/40">Just a moment</p>
+                <p className="text-sm text-muted-foreground/70">Just a moment</p>
               </div>
               <div className="flex gap-2.5 items-center justify-center">
                 {[0, 1, 2].map((i) => (

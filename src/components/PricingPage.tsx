@@ -49,7 +49,7 @@ export function PricingPage({ isAuthenticated, isPro }: PricingPageProps) {
           </span>
         </button>
         {isAuthenticated && (
-          <button onClick={() => router.push("/chat")} className="text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors">
+          <button onClick={() => router.push("/chat")} className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors">
             Back to chat
           </button>
         )}
@@ -90,7 +90,7 @@ export function PricingPage({ isAuthenticated, isPro }: PricingPageProps) {
               "Session-only memory (resets on reload)",
             ].map((f) => (
               <li key={f} className="flex items-start gap-2.5 text-sm">
-                <svg className="mt-0.5 shrink-0 text-muted-foreground/60" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="mt-0.5 shrink-0 text-muted-foreground/70" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 <span className="text-muted-foreground">{f}</span>
@@ -166,7 +166,7 @@ export function PricingPage({ isAuthenticated, isPro }: PricingPageProps) {
       </div>
 
       {/* Footer note */}
-      <p className="text-center text-xs text-muted-foreground/40 pb-12">
+      <p className="text-center text-xs text-muted-foreground/70 pb-12">
         Payments processed securely by Stripe. Cancel anytime.
       </p>
     </div>

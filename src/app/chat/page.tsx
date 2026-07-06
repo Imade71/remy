@@ -199,7 +199,7 @@ function ChatContent() {
               <h2 className="text-[1.6rem] font-semibold tracking-tight leading-snug mb-3">
                 You&apos;re in, {firstName}.
               </h2>
-              <p className="text-sm text-muted-foreground/65 leading-relaxed max-w-[260px]">
+              <p className="text-sm text-muted-foreground/70 leading-relaxed max-w-[260px]">
                 No limits, full memory — let&apos;s build something great.
               </p>
 
@@ -211,7 +211,7 @@ function ChatContent() {
               </button>
               <button
                 onClick={() => setShowUpgradeBanner(false)}
-                className="mt-3 text-xs text-muted-foreground/35 hover:text-muted-foreground/60 transition-colors"
+                className="mt-3 text-xs text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors"
               >
                 Dismiss
               </button>
@@ -256,7 +256,7 @@ function Header({
         {onMenuClick && (
           <button
             onClick={onMenuClick}
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/50 hover:text-foreground hover:bg-border/40 transition-all duration-150"
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground/70 hover:text-foreground hover:bg-border/40 transition-all duration-150"
             aria-label="Open menu"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -296,7 +296,7 @@ function Header({
         )}
         {session?.user && (
           <>
-            <span className="text-xs text-muted-foreground/50 hidden sm:block">
+            <span className="text-xs text-muted-foreground/70 hidden sm:block">
               {session.user.name ?? session.user.email}
             </span>
             {session.user.image ? (
@@ -312,7 +312,7 @@ function Header({
             )}
             <button
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-xs text-muted-foreground/40 hover:text-muted-foreground/70 transition-colors"
+              className="text-xs text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors"
             >
               Sign out
             </button>

@@ -11,15 +11,15 @@ export default function TermsOfService() {
             remy<span className="text-primary">.</span>
           </span>
         </Link>
-        <Link href="/" className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+        <Link href="/" className="text-xs text-muted-foreground/70 hover:text-muted-foreground transition-colors">
           ← Back
         </Link>
       </header>
 
       <main className="max-w-2xl mx-auto px-8 py-16">
-        <p className="text-[11px] text-muted-foreground/35 tracking-widest uppercase mb-4">Legal</p>
+        <p className="text-[11px] text-muted-foreground/70 tracking-widest uppercase mb-4">Legal</p>
         <h1 className="text-3xl font-semibold tracking-tight mb-3">Terms of Service</h1>
-        <p className="text-sm text-muted-foreground/50 mb-16">Last updated: June 2026</p>
+        <p className="text-sm text-muted-foreground/70 mb-16">Last updated: June 2026</p>
 
         <div className="space-y-12 text-sm leading-relaxed text-muted-foreground/70">
 
@@ -216,7 +216,7 @@ export default function TermsOfService() {
         </div>
 
         <div className="mt-16 pt-8 border-t border-border/30">
-          <Link href="/" className="text-xs text-muted-foreground/35 hover:text-muted-foreground/60 transition-colors">
+          <Link href="/" className="text-xs text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors">
             ← Back to REMY
           </Link>
         </div>

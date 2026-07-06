@@ -74,7 +74,7 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
           </div>
           <div className="text-center">
             <h1 className="text-xl font-semibold tracking-tight">Welcome to REMY</h1>
-            <p className="text-sm text-muted-foreground/60 mt-1">
+            <p className="text-sm text-muted-foreground/70 mt-1">
               {mode === "signin" ? "Sign in to continue your journey" : "Create your account to get started"}
             </p>
           </div>
@@ -111,7 +111,7 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
           {/* Divider */}
           <div className="flex items-center gap-3">
             <div className="flex-1 h-px bg-border/40" />
-            <span className="text-xs text-muted-foreground/40">or</span>
+            <span className="text-xs text-muted-foreground/70">or</span>
             <div className="flex-1 h-px bg-border/40" />
           </div>
 
@@ -149,7 +149,7 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/40 hover:text-muted-foreground/80 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground/70 hover:text-muted-foreground/90 transition-colors"
                 tabIndex={-1}
               >
                 {showPassword ? (
@@ -187,7 +187,7 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
           </form>
 
           {/* Toggle */}
-          <p className="text-center text-xs text-muted-foreground/45">
+          <p className="text-center text-xs text-muted-foreground/70">
             {mode === "signin" ? "Don't have an account? " : "Already have an account? "}
             <button
               onClick={() => { setMode(mode === "signin" ? "signup" : "signin"); setError(""); }}
