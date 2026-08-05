@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { sendWelcomeEmail } from "@/lib/email";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -44,4 +45,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
   },
   pages: { signIn: "/login" },
+  events: {
+    async createUser({ user }) {
+      if (user.email) {
+        sendWelcomeEmail(user.email, user.name).catch((err) =>
+          console.error("Failed to send welcome email:", err)
+        );
+      }
+    },
+  },
 });

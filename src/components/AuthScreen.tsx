@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
@@ -166,6 +167,17 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
                 )}
               </button>
             </div>
+
+            {mode === "signin" && (
+              <div className="text-right -mt-1">
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-muted-foreground/70 hover:text-primary transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+            )}
 
             {error && (
               <p className="text-xs text-red-400/90 text-center">{error}</p>
