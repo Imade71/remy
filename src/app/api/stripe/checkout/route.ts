@@ -33,15 +33,7 @@ export async function POST() {
     mode: "subscription",
     line_items: [
       {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: "REMY Pro",
-            description: "Unlimited messages & screenshots, full cross-session memory",
-          },
-          unit_amount: 1900,
-          recurring: { interval: "month" },
-        },
+        price: process.env.STRIPE_PRICE_ID,
         quantity: 1,
       },
     ],
