@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const PROGRAMS = [
   { name: "Bubble",          logo: "/logos/bubble.svg" },
@@ -14,11 +14,6 @@ const PROGRAMS = [
 ];
 
 export default function LandingPage() {
-  const [waitlistCount, setWaitlistCount] = useState(247);
-  const [waitlistEmail, setWaitlistEmail] = useState("");
-  const [showWaitlistSuccess, setShowWaitlistSuccess] = useState(false);
-  const [emailError, setEmailError] = useState(false);
-  const [copyText, setCopyText] = useState("Copy link");
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -39,29 +34,6 @@ export default function LandingPage() {
 
   function scrollToId(id: string) {
     containerRef.current?.querySelector(`#${id}`)?.scrollIntoView({ behavior: "smooth" });
-  }
-
-  function handleWaitlist() {
-    if (!waitlistEmail || !waitlistEmail.includes("@")) {
-      setEmailError(true);
-      return;
-    }
-    setEmailError(false);
-    setShowWaitlistSuccess(true);
-    setWaitlistCount((c) => c + 1);
-  }
-
-  function shareTwitter() {
-    window.open(
-      "https://twitter.com/intent/tweet?text=Just+joined+the+waitlist+for+Remy+%E2%80%94+an+AI+that+guides+you+through+any+software+step+by+step.+%F0%9F%9A%80&url=https://getremy.ai",
-      "_blank"
-    );
-  }
-
-  function copyLink() {
-    navigator.clipboard.writeText("https://getremy.ai");
-    setCopyText("Copied!");
-    setTimeout(() => setCopyText("Copy link"), 2000);
   }
 
   return (
@@ -85,7 +57,10 @@ export default function LandingPage() {
           <li><a href="#programs" onClick={(e) => { e.preventDefault(); scrollToId("programs"); }}>Programs</a></li>
           <li><a href="#pricing" onClick={(e) => { e.preventDefault(); scrollToId("pricing"); }}>Pricing</a></li>
         </ul>
-        <button className="nav-cta" onClick={() => scrollToId("waitlist")}>Get early access</button>
+        <div className="nav-actions">
+          <a href="/login" className="nav-login">Log in</a>
+          <a href="/chat" className="nav-cta">Start for free</a>
+        </div>
       </nav>
 
       {/* HERO */}
@@ -278,42 +253,18 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* WAITLIST */}
-      <section className="waitlist" id="waitlist">
+      {/* CTA */}
+      <section className="waitlist" id="cta">
         <div className="waitlist-bg"></div>
         <div className="waitlist-inner rl-reveal">
-          <div className="waitlist-count">
-            <div className="waitlist-count-dot"></div>
-            <span>{waitlistCount}</span> people on the waitlist
+          <h2 className="section-title">Ready when<br /><span style={{ color: "var(--blue)" }}>you are.</span></h2>
+          <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: 1.8, marginTop: "14px" }}>Remy is live. Sign up free and get unstuck in whatever you&apos;re working on, right now.</p>
+
+          <div className="waitlist-form" style={{ justifyContent: "center" }}>
+            <a href="/chat" className="btn-primary">Start for free</a>
           </div>
-          <h2 className="section-title">Be first.<br /><span style={{ color: "var(--blue)" }}>Get early access.</span></h2>
-          <p style={{ fontSize: "14px", color: "var(--text-dim)", lineHeight: 1.8, marginTop: "14px" }}>Remy is launching soon. Join the waitlist and be among the first to navigate any software with confidence.</p>
 
-          {!showWaitlistSuccess ? (
-            <div className="waitlist-form">
-              <input
-                type="email"
-                className="waitlist-input"
-                placeholder={emailError ? "Please enter a valid email" : "Your email address"}
-                value={waitlistEmail}
-                onChange={(e) => { setWaitlistEmail(e.target.value); setEmailError(false); }}
-                style={emailError ? { borderColor: "rgba(239,68,68,0.5)" } : undefined}
-              />
-              <button className="waitlist-submit" onClick={handleWaitlist}>Join waitlist</button>
-            </div>
-          ) : (
-            <div className="waitlist-success" style={{ display: "flex" }}>
-              <div className="waitlist-success-icon">✓</div>
-              <p>You&apos;re on the list. <strong>Remy will be in touch.</strong></p>
-              <p style={{ fontSize: "12px", color: "var(--text-dim)" }}>Share Remy with someone who needs it.</p>
-              <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
-                <button onClick={shareTwitter} className="btn-secondary" style={{ fontSize: "13px", padding: "10px 18px" }}>Share on X</button>
-                <button onClick={copyLink} className="btn-secondary" style={{ fontSize: "13px", padding: "10px 18px" }}>{copyText}</button>
-              </div>
-            </div>
-          )}
-
-          <p className="waitlist-note">No spam. No noise. Just Remy when it&apos;s ready.</p>
+          <p className="waitlist-note">Free to start. No credit card required.</p>
         </div>
       </section>
 
@@ -409,6 +360,22 @@ const LANDING_CSS = `
   transition: color 0.2s;
 }
 .remy-landing .nav-links a:hover { color: var(--text); }
+.remy-landing .nav-actions {
+  display: flex; align-items: center; gap: 12px;
+}
+.remy-landing .nav-login {
+  background: #4338ca;
+  border: none; color: #f5f3ff;
+  padding: 10px 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px; font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-block;
+  text-decoration: none;
+}
+.remy-landing .nav-login:hover { background: #3730a3; transform: translateY(-1px); }
 .remy-landing .nav-cta {
   background: var(--blue);
   border: none; color: #fff;
@@ -418,6 +385,8 @@ const LANDING_CSS = `
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
+  display: inline-block;
+  text-decoration: none;
 }
 .remy-landing .nav-cta:hover { background: #2563eb; transform: translateY(-1px); }
 
@@ -825,73 +794,15 @@ const LANDING_CSS = `
   background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(59,130,246,0.08) 0%, transparent 70%);
 }
 .remy-landing .waitlist-inner { max-width: 540px; margin: 0 auto; position: relative; }
-.remy-landing .waitlist-count {
-  display: inline-flex; align-items: center; gap: 8px;
-  background: var(--blue-dim);
-  border: 1px solid var(--border-blue);
-  border-radius: 100px;
-  padding: 6px 16px;
-  margin-bottom: 28px;
-  font-size: 13px; color: #93c5fd;
-}
-.remy-landing .waitlist-count-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--blue);
-  animation: rl-pulse 2s infinite;
-}
 .remy-landing .waitlist-form {
   display: flex; gap: 8px;
   margin-top: 36px;
   max-width: 460px; margin-left: auto; margin-right: auto;
 }
-.remy-landing .waitlist-input {
-  flex: 1;
-  background: var(--navy-card);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 18px;
-  color: var(--text);
-  font-family: 'Inter', sans-serif;
-  font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.remy-landing .waitlist-input::placeholder { color: var(--text-dim); }
-.remy-landing .waitlist-input:focus { border-color: var(--border-blue); }
-.remy-landing .waitlist-submit {
-  background: var(--blue);
-  border: none; color: #fff;
-  padding: 14px 24px;
-  font-family: 'Inter', sans-serif;
-  font-size: 14px; font-weight: 500;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.remy-landing .waitlist-submit:hover { background: #2563eb; }
 .remy-landing .waitlist-note {
   margin-top: 14px;
   font-size: 12px; color: var(--text-dim);
 }
-.remy-landing .waitlist-success {
-  flex-direction: column; align-items: center; gap: 14px;
-  margin-top: 36px;
-}
-.remy-landing .waitlist-success-icon {
-  width: 48px; height: 48px;
-  border-radius: 50%;
-  background: var(--blue-dim);
-  border: 1px solid var(--border-blue);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px;
-  animation: rl-fadeUp 0.5s both;
-}
-.remy-landing .waitlist-success p {
-  font-size: 15px; color: var(--text-mid);
-  animation: rl-fadeUp 0.5s 0.2s both;
-}
-.remy-landing .waitlist-success strong { color: var(--blue); }
 
 /* FOOTER */
 .remy-landing footer {

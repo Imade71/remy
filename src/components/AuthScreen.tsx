@@ -69,9 +69,9 @@ export function AuthScreen({ callbackUrl = "/" }: { callbackUrl?: string }) {
         <div className="flex flex-col items-center mb-8 gap-3">
           <div className="relative flex items-center justify-center">
             <div className="absolute h-24 w-24 rounded-full bg-primary/20 blur-2xl animate-glow-breathe" />
-            <div className="relative flex h-14 w-14 items-center justify-center rounded-full border border-primary/40 bg-primary/15 text-2xl font-bold text-primary shadow-xl shadow-primary/30">
-              R
-            </div>
+            <span className="relative text-3xl font-extrabold tracking-tight text-foreground">
+              remy<span className="text-primary">.</span>
+            </span>
           </div>
           <div className="text-center">
             <h1 className="text-xl font-semibold tracking-tight">Welcome to REMY</h1>
