@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ChatInterface } from "@/components/ChatInterface";
 import { IntakeScreen, type IntakeData } from "@/components/IntakeScreen";
-import { Sidebar } from "@/components/Sidebar";
+import { Sidebar, type ConversationSummary } from "@/components/Sidebar";
 import type { MessageImage } from "@/components/ChatInterface";
 
 interface StoredMessage {
@@ -45,6 +45,8 @@ function ChatContent() {
   const [intakeData, setIntakeData] = useState<IntakeData | null>(null);
   const [initialMessages, setInitialMessages] = useState<Array<{ role: "user" | "assistant"; content: string; image?: MessageImage }> | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(null);
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [chatKey, setChatKey] = useState(0);
   const [dataLoading, setDataLoading] = useState(false);
   const [usage, setUsage] = useState<UsageState | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,8 +65,10 @@ function ChatContent() {
       fetch("/api/intake").then((r) => r.json()),
       fetch("/api/messages").then((r) => r.json()),
       fetch("/api/usage").then((r) => r.json()),
-    ]).then(([intake, messagesData, usageData]) => {
+      fetch("/api/conversations").then((r) => r.json()),
+    ]).then(([intake, messagesData, usageData, conversationsData]) => {
       if (intake) setIntakeData(intake);
+      if (Array.isArray(conversationsData)) setConversations(conversationsData);
       const messages = Array.isArray(messagesData?.messages) ? messagesData.messages : [];
       setConversationId(messagesData?.conversationId ?? null);
       setInitialMessages(
@@ -95,6 +99,16 @@ function ChatContent() {
     });
   }, [session?.user?.id]);
 
+  // Refresh the history list whenever the sidebar opens, so a conversation
+  // created since the last fetch (e.g. the one just sent in) shows up.
+  useEffect(() => {
+    if (!sidebarOpen || !session?.user?.id) return;
+    fetch("/api/conversations")
+      .then((r) => r.json())
+      .then((data) => { if (Array.isArray(data)) setConversations(data); })
+      .catch(() => {});
+  }, [sidebarOpen, session?.user?.id]);
+
   async function handleIntakeComplete(data: IntakeData) {
     await fetch("/api/intake", {
       method: "POST",
@@ -104,6 +118,7 @@ function ChatContent() {
     setIntakeData(data);
     setInitialMessages([]);
     setConversationId(null);
+    setChatKey((k) => k + 1);
   }
 
   async function handleNewConversation() {
@@ -115,6 +130,46 @@ function ChatContent() {
     setIntakeData(null);
     setInitialMessages([]);
     setConversationId(null);
+    setChatKey((k) => k + 1);
+  }
+
+  // Starts a fresh conversation without touching the current one — it's
+  // simply left in the history list, and the next message lazily creates
+  // a new Conversation row.
+  function handleNewChat() {
+    setInitialMessages([]);
+    setConversationId(null);
+    setChatKey((k) => k + 1);
+  }
+
+  // Loads a past conversation into the chat view, replacing what's shown.
+  async function handleSelectConversation(id: string) {
+    if (id === conversationId) return;
+    setDataLoading(true);
+    try {
+      const res = await fetch(`/api/messages?conversationId=${encodeURIComponent(id)}`);
+      const data = await res.json();
+      const messages = Array.isArray(data?.messages) ? data.messages : [];
+      setInitialMessages(
+        messages.map((m: StoredMessage) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+          ...(m.imageData && m.imageMediaType
+            ? {
+                image: {
+                  data: m.imageData,
+                  mediaType: m.imageMediaType as MessageImage["mediaType"],
+                  previewUrl: `data:${m.imageMediaType};base64,${m.imageData}`,
+                },
+              }
+            : {}),
+        }))
+      );
+      setConversationId(data?.conversationId ?? id);
+      setChatKey((k) => k + 1);
+    } finally {
+      setDataLoading(false);
+    }
   }
 
   const upgraded = searchParams.get("upgraded") === "true";
@@ -157,7 +212,7 @@ function ChatContent() {
       />
       <div className="flex-1 overflow-hidden">
         <div
-          key={intakeData ? "chat" : "intake"}
+          key={intakeData ? `chat-${chatKey}` : "intake"}
           className="h-full animate-in fade-in-0 duration-500"
         >
           {intakeData && initialMessages !== null ? (
@@ -181,6 +236,10 @@ function ChatContent() {
         isPro={usage?.isPro ?? false}
         intakeData={intakeData}
         onNewConversation={handleNewConversation}
+        conversations={conversations}
+        activeConversationId={conversationId}
+        onSelectConversation={handleSelectConversation}
+        onNewChat={handleNewChat}
       />
 
       {showUpgradeBanner && (

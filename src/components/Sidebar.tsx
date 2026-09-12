@@ -6,6 +6,12 @@ import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { IntakeData } from "./IntakeScreen";
 
+export interface ConversationSummary {
+  id: string;
+  title: string | null;
+  updatedAt: string;
+}
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -13,6 +19,22 @@ interface SidebarProps {
   isPro: boolean;
   intakeData: IntakeData | null;
   onNewConversation: () => void;
+  conversations: ConversationSummary[];
+  activeConversationId: string | null;
+  onSelectConversation: (conversationId: string) => void;
+  onNewChat: () => void;
+}
+
+function formatConversationTime(iso: string): string {
+  const date = new Date(iso);
+  const now = new Date();
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  }
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) return "Yesterday";
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
 const LANGUAGES = [
@@ -23,7 +45,18 @@ const LANGUAGES = [
   { value: "ar", label: "العربية" },
 ];
 
-export function Sidebar({ isOpen, onClose, session, isPro, intakeData, onNewConversation }: SidebarProps) {
+export function Sidebar({
+  isOpen,
+  onClose,
+  session,
+  isPro,
+  intakeData,
+  onNewConversation,
+  conversations,
+  activeConversationId,
+  onSelectConversation,
+  onNewChat,
+}: SidebarProps) {
   const router = useRouter();
   const [language, setLanguage] = useState("en");
   const panelRef = useRef<HTMLDivElement>(null);
@@ -221,6 +254,73 @@ export function Sidebar({ isOpen, onClose, session, isPro, intakeData, onNewConv
               </svg>
               New workspace
             </button>
+          </div>
+
+          {/* ── Conversations ── */}
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <p
+                className="text-[10px] tracking-[0.14em] uppercase"
+                style={{ color: "oklch(1 0 0 / 18%)" }}
+              >
+                Conversations
+              </p>
+              <button
+                onClick={() => { onNewChat(); onClose(); }}
+                className="flex items-center gap-1.5 text-xs transition-colors duration-150"
+                style={{ color: "oklch(0.62 0.17 235 / 0.65)" }}
+                onMouseEnter={e => (e.currentTarget.style.color = "oklch(0.62 0.17 235)")}
+                onMouseLeave={e => (e.currentTarget.style.color = "oklch(0.62 0.17 235 / 0.65)")}
+              >
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                New chat
+              </button>
+            </div>
+
+            {conversations.length === 0 ? (
+              <div
+                className="rounded-2xl p-5"
+                style={{
+                  background: "oklch(0.11 0.03 248)",
+                  border: "1px solid oklch(1 0 0 / 5%)",
+                }}
+              >
+                <p className="text-sm" style={{ color: "oklch(1 0 0 / 22%)" }}>
+                  No conversations yet
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-1">
+                {conversations.map((conv) => {
+                  const active = conv.id === activeConversationId;
+                  return (
+                    <button
+                      key={conv.id}
+                      onClick={() => { onSelectConversation(conv.id); onClose(); }}
+                      className="text-left rounded-xl px-3 py-2.5 transition-colors duration-150"
+                      style={{
+                        background: active ? "oklch(0.62 0.17 235 / 0.12)" : "transparent",
+                        border: active ? "1px solid oklch(0.62 0.17 235 / 0.25)" : "1px solid transparent",
+                      }}
+                      onMouseEnter={e => { if (!active) e.currentTarget.style.background = "oklch(1 0 0 / 4%)"; }}
+                      onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}
+                    >
+                      <p
+                        className="text-sm truncate"
+                        style={{ color: active ? "oklch(0.93 0.008 264)" : "oklch(1 0 0 / 55%)" }}
+                      >
+                        {conv.title ?? "Untitled conversation"}
+                      </p>
+                      <p className="text-[11px] mt-0.5" style={{ color: "oklch(1 0 0 / 26%)" }}>
+                        {formatConversationTime(conv.updatedAt)}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* ── Language ── */}

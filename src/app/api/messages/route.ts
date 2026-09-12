@@ -2,15 +2,36 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+const TITLE_MAX_LENGTH = 60;
+
+// Derived once, at creation time, from the conversation's first user
+// message — never regenerated afterward.
+function deriveTitle(content: string): string | null {
+  const collapsed = content.replace(/\s+/g, " ").trim();
+  if (!collapsed) return null;
+  return collapsed.length > TITLE_MAX_LENGTH
+    ? collapsed.slice(0, TITLE_MAX_LENGTH).trimEnd() + "…"
+    : collapsed;
+}
+
+export async function GET(request: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ conversationId: null, messages: [] }, { status: 401 });
 
-  const conversation = await prisma.conversation.findFirst({
-    where: { userId: session.user.id },
-    orderBy: { updatedAt: "desc" },
-    include: { messages: { orderBy: { createdAt: "asc" } } },
-  });
+  const requestedId = new URL(request.url).searchParams.get("conversationId");
+
+  // A specific conversation (from clicking one in the history list), scoped
+  // to this user, or — with no id given — whichever one was active last.
+  const conversation = requestedId
+    ? await prisma.conversation.findFirst({
+        where: { id: requestedId, userId: session.user.id },
+        include: { messages: { orderBy: { createdAt: "asc" } } },
+      })
+    : await prisma.conversation.findFirst({
+        where: { userId: session.user.id },
+        orderBy: { updatedAt: "desc" },
+        include: { messages: { orderBy: { createdAt: "asc" } } },
+      });
 
   return NextResponse.json({
     conversationId: conversation?.id ?? null,
@@ -41,7 +62,16 @@ export async function POST(request: Request) {
           where: { id: conversationId },
           data: { updatedAt: new Date() },
         })
-      : await tx.conversation.create({ data: { userId } }); // lazy-create on first message
+      : await tx.conversation.create({
+          // lazy-create on first message; title is set once, here, and
+          // left alone on every later message in this conversation.
+          data: {
+            userId,
+            title: deriveTitle(
+              messages.find((m: { role: string; content: string }) => m.role === "user")?.content ?? ""
+            ),
+          },
+        });
 
     await tx.userMessage.createMany({
       data: messages.map((m: { role: string; content: string; image?: { data: string; mediaType: string } }) => ({
