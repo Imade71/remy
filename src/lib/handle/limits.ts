@@ -32,9 +32,8 @@ export const MAX_TOOL_CALLS = 25;
 
 // Wall-clock budget for the whole job, checked between tool calls so a
 // runaway loop exits with a clean error instead of hitting the
-// platform's own timeout. Keep comfortably under `maxDuration` below.
+// platform's own timeout. Keep comfortably under the route's
+// `maxDuration` (currently 60s, hardcoded in route.ts — Next.js's
+// route segment config exports must be literals it can statically
+// analyze at build time, so that value can't be imported from here).
 export const MAX_JOB_DURATION_MS = 50_000;
-
-// Route segment config value (seconds). Vercel Hobby caps at 60s;
-// raise this (and upgrade the plan) once real jobs need more.
-export const ROUTE_MAX_DURATION_SECONDS = 60;

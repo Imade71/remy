@@ -3,16 +3,19 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { isHandleEnabledForUser } from "@/lib/handle/access";
 import { runHandleAgent } from "@/lib/handle/agent";
-import {
-  ALLOWED_UPLOAD_EXTENSION,
-  MAX_UPLOAD_BYTES,
-  ROUTE_MAX_DURATION_SECONDS,
-} from "@/lib/handle/limits";
+import { ALLOWED_UPLOAD_EXTENSION, MAX_UPLOAD_BYTES } from "@/lib/handle/limits";
 
 // Needs Node APIs (Buffer, ExcelJS) and more time than a typical chat
 // turn — kept on its own route so this doesn't affect /api/chat's config.
+//
+// Route segment config values must be literals Next.js can statically
+// analyze at build time — importing maxDuration from a shared constant
+// compiles and typechecks fine locally but fails on Vercel at
+// "Collecting page data" with "Invalid segment configuration export
+// detected", since the build can no longer see a literal number here.
+// 60 is the Vercel Hobby plan's cap; raise this only after upgrading.
 export const runtime = "nodejs";
-export const maxDuration = ROUTE_MAX_DURATION_SECONDS;
+export const maxDuration = 60;
 
 // Milestone 1: upload + instruction + execute + save, in one request.
 // No conversation history, no Sidebar/Conversation wiring, no Stripe
