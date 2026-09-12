@@ -32,13 +32,21 @@ interface ChatInterfaceProps {
   intakeData?: IntakeData;
   initialMessages?: Message[];
   initialUsage?: UsageState;
+  conversationId?: string | null;
+  onConversationIdChange?: (conversationId: string | null) => void;
 }
 
 const FREE_MSG_LIMIT = 30;
 const FREE_SCREENSHOT_LIMIT = 3;
 const WARN_THRESHOLD = 5;
 
-export function ChatInterface({ intakeData, initialMessages, initialUsage }: ChatInterfaceProps) {
+export function ChatInterface({
+  intakeData,
+  initialMessages,
+  initialUsage,
+  conversationId = null,
+  onConversationIdChange,
+}: ChatInterfaceProps) {
   const router = useRouter();
 
   const welcomeMessage: Message | null =
@@ -220,8 +228,13 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
       fetch("/api/messages", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: toSave }),
-      }).catch(() => {});
+        body: JSON.stringify({ messages: toSave, conversationId }),
+      })
+        .then((r) => r.json())
+        .then((data) => {
+          if (data?.conversationId) onConversationIdChange?.(data.conversationId);
+        })
+        .catch(() => {});
     } catch {
       setMessages((prev) => {
         const updated = [...prev];
@@ -267,7 +280,12 @@ export function ChatInterface({ intakeData, initialMessages, initialUsage }: Cha
     setPendingImage(null);
     setLimitError(null);
     textareaRef.current?.focus();
-    fetch("/api/messages", { method: "DELETE" }).catch(() => {});
+    fetch("/api/messages", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId }),
+    }).catch(() => {});
+    onConversationIdChange?.(null);
   }
 
   return (

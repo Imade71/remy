@@ -24,6 +24,7 @@ model User {
   sessions               Session[]
   intakeData             IntakeData?
   messages               UserMessage[]
+  conversations          Conversation[]
   dailyUsages            DailyUsage[]
   passwordResetTokens    PasswordResetToken[]
 }
@@ -97,17 +98,32 @@ model CachedAnswer {
   @@index([program])
 }
 
+model Conversation {
+  id        String        @id @default(cuid())
+  userId    String
+  title     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  UserMessage[]
+
+  @@index([userId, updatedAt])
+}
+
 model UserMessage {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   userId         String
+  conversationId String
   role           String
   content        String
   imageData      String?
   imageMediaType String?
-  createdAt      DateTime @default(now())
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+  @@index([conversationId, createdAt])
 }
 
 model DailyUsage {

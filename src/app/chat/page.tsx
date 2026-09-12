@@ -44,6 +44,7 @@ function ChatContent() {
   const searchParams = useSearchParams();
   const [intakeData, setIntakeData] = useState<IntakeData | null>(null);
   const [initialMessages, setInitialMessages] = useState<Array<{ role: "user" | "assistant"; content: string; image?: MessageImage }> | null>(null);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(false);
   const [usage, setUsage] = useState<UsageState | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -62,27 +63,25 @@ function ChatContent() {
       fetch("/api/intake").then((r) => r.json()),
       fetch("/api/messages").then((r) => r.json()),
       fetch("/api/usage").then((r) => r.json()),
-    ]).then(([intake, messages, usageData]) => {
+    ]).then(([intake, messagesData, usageData]) => {
       if (intake) setIntakeData(intake);
-      if (Array.isArray(messages)) {
-        setInitialMessages(
-          messages.map((m: StoredMessage) => ({
-            role: m.role as "user" | "assistant",
-            content: m.content,
-            ...(m.imageData && m.imageMediaType
-              ? {
-                  image: {
-                    data: m.imageData,
-                    mediaType: m.imageMediaType as MessageImage["mediaType"],
-                    previewUrl: `data:${m.imageMediaType};base64,${m.imageData}`,
-                  },
-                }
-              : {}),
-          }))
-        );
-      } else {
-        setInitialMessages([]);
-      }
+      const messages = Array.isArray(messagesData?.messages) ? messagesData.messages : [];
+      setConversationId(messagesData?.conversationId ?? null);
+      setInitialMessages(
+        messages.map((m: StoredMessage) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+          ...(m.imageData && m.imageMediaType
+            ? {
+                image: {
+                  data: m.imageData,
+                  mediaType: m.imageMediaType as MessageImage["mediaType"],
+                  previewUrl: `data:${m.imageMediaType};base64,${m.imageData}`,
+                },
+              }
+            : {}),
+        }))
+      );
       if (usageData && !usageData.error) {
         setUsage({
           isPro: usageData.isPro,
@@ -104,12 +103,18 @@ function ChatContent() {
     });
     setIntakeData(data);
     setInitialMessages([]);
+    setConversationId(null);
   }
 
   async function handleNewConversation() {
-    await fetch("/api/messages", { method: "DELETE" });
+    await fetch("/api/messages", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId }),
+    });
     setIntakeData(null);
     setInitialMessages([]);
+    setConversationId(null);
   }
 
   const upgraded = searchParams.get("upgraded") === "true";
@@ -160,6 +165,8 @@ function ChatContent() {
               intakeData={intakeData}
               initialMessages={initialMessages}
               initialUsage={usage ?? undefined}
+              conversationId={conversationId}
+              onConversationIdChange={setConversationId}
             />
           ) : (
             <IntakeScreen onComplete={handleIntakeComplete} />

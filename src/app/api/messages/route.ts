@@ -1,50 +1,77 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isPro } from "@/lib/stripe";
 
 export async function GET() {
   const session = await auth();
-  if (!session?.user?.id) return NextResponse.json([], { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ conversationId: null, messages: [] }, { status: 401 });
 
-  const messages = await prisma.userMessage.findMany({
+  const conversation = await prisma.conversation.findFirst({
     where: { userId: session.user.id },
-    orderBy: { createdAt: "asc" },
+    orderBy: { updatedAt: "desc" },
+    include: { messages: { orderBy: { createdAt: "asc" } } },
   });
-  return NextResponse.json(messages);
+
+  return NextResponse.json({
+    conversationId: conversation?.id ?? null,
+    messages: conversation?.messages ?? [],
+  });
 }
 
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: { subscriptionStatus: true },
-  });
+  const userId = session.user.id;
+  const { messages, conversationId: requestedConversationId } = await request.json();
 
-  // Free users get session-only memory — skip persisting
-  if (!user || !isPro(user)) {
-    return NextResponse.json({ ok: true, saved: false });
+  // Only reuse the requested conversation if it actually belongs to this user.
+  let conversationId: string | null = null;
+  if (requestedConversationId) {
+    const owned = await prisma.conversation.findFirst({
+      where: { id: requestedConversationId, userId },
+      select: { id: true },
+    });
+    if (owned) conversationId = owned.id;
   }
 
-  const { messages } = await request.json();
-  await prisma.userMessage.createMany({
-    data: messages.map((m: { role: string; content: string; image?: { data: string; mediaType: string } }) => ({
-      userId: session.user.id,
-      role: m.role,
-      content: m.content,
-      imageData: m.image?.data ?? null,
-      imageMediaType: m.image?.mediaType ?? null,
-    })),
+  const conversation = await prisma.$transaction(async (tx) => {
+    const conv = conversationId
+      ? await tx.conversation.update({
+          where: { id: conversationId },
+          data: { updatedAt: new Date() },
+        })
+      : await tx.conversation.create({ data: { userId } }); // lazy-create on first message
+
+    await tx.userMessage.createMany({
+      data: messages.map((m: { role: string; content: string; image?: { data: string; mediaType: string } }) => ({
+        userId,
+        conversationId: conv.id,
+        role: m.role,
+        content: m.content,
+        imageData: m.image?.data ?? null,
+        imageMediaType: m.image?.mediaType ?? null,
+      })),
+    });
+
+    return conv;
   });
-  return NextResponse.json({ ok: true, saved: true });
+
+  return NextResponse.json({ ok: true, saved: true, conversationId: conversation.id });
 }
 
-export async function DELETE() {
+export async function DELETE(request: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 });
 
-  await prisma.userMessage.deleteMany({ where: { userId: session.user.id } });
+  const { conversationId } = await request.json().catch(() => ({ conversationId: null }));
+  if (!conversationId) return NextResponse.json({ ok: true });
+
+  // Scoped to id + userId so a conversation can only ever be deleted by its owner;
+  // cascades to its messages via the FK's onDelete: Cascade.
+  await prisma.conversation.deleteMany({
+    where: { id: conversationId, userId: session.user.id },
+  });
+
   return NextResponse.json({ ok: true });
 }
